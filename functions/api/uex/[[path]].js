@@ -27,7 +27,7 @@ export async function onRequest(context) {
 
   // Entêtes à envoyer à UEX
   const headers = { 'Content-Type': 'application/json' };
-  if (env.UEX_API_KEY) headers['secret_key'] = env.UEX_API_KEY;
+  if (env.UEX_API_KEY) headers['secret-key'] = env.UEX_API_KEY;
 
   // Options fetch selon la méthode
   const fetchOpts = { method: request.method, headers };
