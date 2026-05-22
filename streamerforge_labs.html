@@ -554,6 +554,207 @@
         }
         footer a { color: var(--cyan); text-decoration: none; }
 
+        /* ── MODAL VALIDATION ── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.8);
+            z-index: 500;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-hi);
+            border-radius: 10px;
+            padding: 22px 24px;
+            width: 460px; max-width: 94vw;
+        }
+        .modal-title { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 14px; letter-spacing:.5px; }
+        .modal-route {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 6px; padding: 9px 13px;
+            font-size: 11px; color: var(--text-2); margin-bottom: 14px; line-height: 1.9;
+        }
+        .modal-route strong { color: var(--text); }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-bottom: 12px; }
+        .modal-field label { display: block; font-size: 10px; color: var(--text-2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .8px; }
+        .modal-handle { margin-bottom: 12px; }
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+        .btn-modal-cancel { padding: 7px 14px; background: none; border: 1px solid var(--border-hi); color: var(--text-2); border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .btn-modal-cancel:hover { border-color: var(--text-2); }
+        .btn-modal-submit { padding: 7px 18px; background: linear-gradient(90deg,#10b981,#059669); border: none; color: #fff; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 700; }
+        .btn-modal-submit:hover { opacity: .88; }
+        .btn-modal-submit:disabled { opacity: .45; cursor: not-allowed; }
+        .btn-validate {
+            background: none;
+            border: 1px solid rgba(16,185,129,.35);
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: all .2s;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .btn-validate svg { display:block; transition: transform .2s; }
+        .btn-validate:hover {
+            background: rgba(16,185,129,.15);
+            border-color: var(--green);
+            box-shadow: 0 0 8px rgba(16,185,129,.25);
+        }
+        .btn-validate:hover svg { transform: scale(1.15); }
+        /* Variante leg circuit : pleine largeur avec texte */
+        .btn-validate-leg {
+            font-size: 11px; color: var(--green);
+            padding: 5px 10px; gap: 4px;
+            font-weight: 600; letter-spacing: .3px;
+        }
+        .btn-validate-leg:hover { color: #fff; }
+
+        /* Refresh / actualiser leg */
+        .leg-actions { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+        .btn-leg-refresh {
+            background: none;
+            border: 1px solid rgba(0,212,255,.3);
+            border-radius: 5px;
+            color: var(--cyan);
+            font-size: 10px; font-weight: 600; letter-spacing: .3px;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: all .2s;
+            width: 100%;
+        }
+        .btn-leg-refresh:hover { background: rgba(0,212,255,.1); border-color: var(--cyan); }
+        .btn-leg-refresh:disabled { opacity: .4; cursor: not-allowed; }
+        .leg-status { font-size: 10px; line-height: 1.5; }
+        .btn-recalc-here {
+            display: block; width: 100%; margin-top: 4px;
+            background: linear-gradient(90deg,#f59e0b,#ef4444);
+            border: none; border-radius: 5px;
+            color: #fff; font-size: 11px; font-weight: 700;
+            padding: 6px 10px; cursor: pointer;
+            animation: pulseRecalc 1.8s ease-in-out infinite;
+        }
+        @keyframes pulseRecalc {
+            0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.5); }
+            50%      { box-shadow: 0 0 8px 3px rgba(245,158,11,.35); }
+        }
+        .modal-msg { font-size: 11px; margin-top: 8px; text-align: center; min-height: 16px; }
+
+        /* ── TUTORIEL ── */
+        .tuto-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .tuto-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-hi);
+            border-radius: 14px;
+            width: 100%; max-width: 560px;
+            box-shadow: 0 0 60px rgba(0,212,255,.12), 0 0 0 1px rgba(0,212,255,.08);
+            overflow: hidden;
+        }
+        .tuto-progress {
+            height: 3px;
+            background: var(--border);
+        }
+        .tuto-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--purple));
+            transition: width .4s ease;
+        }
+        .tuto-body {
+            padding: 32px 32px 24px;
+        }
+        .tuto-step-label {
+            font-size: 10px; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--cyan);
+            margin-bottom: 6px;
+        }
+        .tuto-icon {
+            font-size: 40px; margin-bottom: 14px; display: block;
+            filter: drop-shadow(0 0 12px rgba(0,212,255,.3));
+        }
+        .tuto-title {
+            font-size: 20px; font-weight: 800; color: var(--text);
+            margin-bottom: 12px; line-height: 1.2;
+        }
+        .tuto-desc {
+            font-size: 13px; color: var(--text-2); line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .tuto-desc strong { color: var(--text); }
+        .tuto-desc .hl-cyan  { color: var(--cyan);   font-weight: 700; }
+        .tuto-desc .hl-green { color: var(--green);  font-weight: 700; }
+        .tuto-desc .hl-amber { color: var(--amber);  font-weight: 700; }
+        .tuto-tip {
+            background: rgba(0,212,255,.07);
+            border: 1px solid rgba(0,212,255,.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 11px; color: var(--cyan);
+            line-height: 1.6; margin-bottom: 20px;
+        }
+        .tuto-tip.green {
+            background: rgba(16,185,129,.07);
+            border-color: rgba(16,185,129,.25);
+            color: var(--green);
+        }
+        .tuto-tip.amber {
+            background: rgba(245,158,11,.07);
+            border-color: rgba(245,158,11,.25);
+            color: var(--amber);
+        }
+        .tuto-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 32px;
+            border-top: 1px solid var(--border);
+            background: rgba(0,0,0,.2);
+        }
+        .tuto-dots {
+            display: flex; gap: 6px;
+        }
+        .tuto-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--border-hi);
+            transition: all .3s;
+            cursor: pointer;
+        }
+        .tuto-dot.active {
+            background: var(--cyan);
+            box-shadow: 0 0 6px var(--cyan);
+            width: 20px; border-radius: 4px;
+        }
+        .tuto-dot.done { background: var(--purple); }
+        .tuto-nav { display: flex; gap: 8px; align-items: center; }
+        .btn-tuto-skip {
+            background: none; border: none;
+            color: var(--text-3); font-size: 11px; cursor: pointer;
+            padding: 0 8px;
+        }
+        .btn-tuto-skip:hover { color: var(--text-2); }
+        .btn-tuto-prev {
+            background: none; border: 1px solid var(--border-hi);
+            color: var(--text-2); font-size: 12px; font-weight: 600;
+            padding: 7px 16px; border-radius: 6px; cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-tuto-prev:hover { border-color: var(--text-2); color: var(--text); }
+        .btn-tuto-next {
+            background: linear-gradient(90deg, var(--cyan), var(--purple));
+            border: none; color: #000; font-size: 12px; font-weight: 800;
+            padding: 8px 20px; border-radius: 6px; cursor: pointer;
+            transition: opacity .2s; letter-spacing: .5px;
+        }
+        .btn-tuto-next:hover { opacity: .88; }
+        .btn-tuto-header {
+            display: flex; align-items: center; gap: 5px;
+            background: none; border: 1px solid rgba(0,212,255,.25);
+            color: var(--cyan); font-size: 11px; font-weight: 600;
+            padding: 5px 12px; border-radius: 5px; cursor: pointer;
+            transition: all .2s; letter-spacing: .3px;
+        }
+        .btn-tuto-header:hover { background: rgba(0,212,255,.1); }
+
         /* Scrollbar */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
@@ -598,6 +799,7 @@
             <svg width="16" height="12" viewBox="0 0 71 55" fill="currentColor"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.5.4a.2.2 0 0 0-.2.1 40.9 40.9 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.5 37.5 0 0 0 25.5.5a.2.2 0 0 0-.2-.1A58.4 58.4 0 0 0 10.7 4.9a.2.2 0 0 0-.1.1C1.5 18.1-.9 31 .3 43.7a.2.2 0 0 0 .1.2 58.8 58.8 0 0 0 17.7 9 .2.2 0 0 0 .3-.1 42 42 0 0 0 3.6-5.9.2.2 0 0 0-.1-.3 38.7 38.7 0 0 1-5.5-2.6.2.2 0 0 1 0-.4l1.1-.8a.2.2 0 0 1 .2 0c11.5 5.3 24 5.3 35.4 0a.2.2 0 0 1 .2 0l1.1.8a.2.2 0 0 1 0 .4 36 36 0 0 1-5.5 2.6.2.2 0 0 0-.1.3 47 47 0 0 0 3.6 5.9.2.2 0 0 0 .3.1 58.6 58.6 0 0 0 17.8-9 .2.2 0 0 0 .1-.2c1.5-15.1-2.5-28.2-10.5-39.8a.2.2 0 0 0-.1-.1zM23.7 36c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2zm23.7 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2z"/></svg>
             Rejoindre Streamer Forge
         </a>
+        <button class="btn-tuto-header" onclick="openTuto()">❓ Guide</button>
         <div class="api-badge"><div class="dot" id="dot"></div><span id="dotTxt">En attente</span></div>
     </div>
 </header>
@@ -673,6 +875,7 @@
                     <select id="sysFilter">
                         <option value="Stanton" selected>Stanton</option>
                         <option value="Pyro">Pyro</option>
+                        <option value="Nyx">Nyx</option>
                         <option value="">Tous les systèmes</option>
                     </select>
                 </div>
@@ -681,7 +884,7 @@
             <div class="tog-row">
                 <span class="tog-lbl">Stations spatiales uniquement</span>
                 <label class="toggle">
-                    <input type="checkbox" id="togSpace" checked>
+                    <input type="checkbox" id="togSpace">
                     <span class="tslider"></span>
                 </label>
             </div>
@@ -840,8 +1043,11 @@ const S = {
     startTerminalName: null,   // position actuelle forcée
 };
 
-const API = '/api/uex';
-const CACHE_MS = 15 * 60 * 1000;
+// En local (file://) → appel direct UEX ; sur le site déployé → proxy Cloudflare
+const API = (location.protocol === 'file:' || location.hostname === 'localhost')
+    ? 'https://api.uexcorp.uk/2.0'
+    : '/api/uex';
+const CACHE_MS = 3 * 60 * 1000;
 
 // ═══════════════════════════════════════════
 //  INIT
@@ -927,24 +1133,42 @@ async function loadData(){
     const comms={};
     commList.forEach(c=>{ comms[c.id]={name:c.name,code:c.code,illegal:c.is_illegal,kind:c.kind}; });
 
-    // 2) Terminaux — on récupère l'id_star_system de Stanton au passage
+    // 2) Terminaux — collecter tous les systèmes disponibles
     setDot('busy','Chargement des terminaux…');
     const terminals = await apiFetch('terminals');
 
-    // Trouver l'id du système Stanton depuis les terminaux
-    const stantonTerm = terminals.find(t=>t.star_system_name==='Stanton');
-    const stantonId   = stantonTerm ? stantonTerm.id_star_system : null;
+    // Systèmes connus (base) + détection auto depuis les terminaux
+    const KNOWN_SYSTEMS = ['Stanton', 'Pyro', 'Nyx'];
+    const sysMap = new Map();
+    terminals.forEach(t => {
+        if(t.id_star_system && t.star_system_name)
+            sysMap.set(t.star_system_name, t.id_star_system);
+    });
+    // Ajouter les systèmes connus même s'ils ne sont pas dans les terminaux
+    // (leurs IDs seront null → on les cherchera autrement)
 
-    // 3) Prix — essayer par id_star_system d'abord (1 seule requête)
+    // Populate le dropdown : systèmes connus d'abord, puis les nouveaux détectés
+    const sysSelect  = document.getElementById('sysFilter');
+    const prevSys    = sysSelect.value || 'Stanton';
+    const detectedSys = [...sysMap.keys()];
+    const allSysNames = [...new Set([...KNOWN_SYSTEMS, ...detectedSys])];
+    sysSelect.innerHTML = allSysNames
+        .map(n => `<option value="${n}"${n==='Stanton'?' selected':''}>${n}</option>`)
+        .join('') + '<option value="">Tous les systèmes</option>';
+    if(prevSys && [...sysSelect.options].some(o => o.value === prevSys))
+        sysSelect.value = prevSys;
+
+    // 3) Prix — fetch tous les systèmes trouvés en parallèle
+    setDot('busy',`Chargement des prix (${[...sysMap.keys()].join(', ')})…`);
     let prices = [];
-    if(stantonId){
-        try{
-            setDot('busy','Chargement des prix (Stanton)…');
-            // Essai 1 : filtre par système
-            prices = await apiFetch(`commodities_prices/id_star_system/${stantonId}`);
-        }catch(e1){
-            prices = [];
-        }
+    try{
+        const fetches = [...sysMap.entries()].map(([name, id]) =>
+            apiFetch(`commodities_prices/id_star_system/${id}`).catch(()=>[])
+        );
+        const allPrices = await Promise.all(fetches);
+        prices = allPrices.flat();
+    }catch(e){
+        prices = [];
     }
 
     // Fallback : prix terminal par terminal si la requête système a échoué
@@ -993,7 +1217,7 @@ function calcRoutes(prices, comms, cfg){
         const id = p.id_commodity;
         if(!byCom[id]){
             const c = comms[id]||{};
-            byCom[id] = { name:p.commodity_name||c.name, code:p.commodity_code||c.code, illegal:c.illegal||0, buy:[], sell:[] };
+            byCom[id] = { id:+id, name:p.commodity_name||c.name, code:p.commodity_code||c.code, illegal:c.illegal||0, buy:[], sell:[] };
         }
         // Achat possible
         if(p.price_buy > 0) byCom[id].buy.push(p);
@@ -1068,6 +1292,10 @@ function calcRoutes(prices, comms, cfg){
                     // Fraîcheur des données
                     buyUpdated:   buy.date_modified  || 0,
                     sellUpdated:  sell.date_modified || 0,
+                    // IDs pour rapport UEX
+                    commodityId:  com.id,
+                    buyTermId:    buy.id_terminal,
+                    sellTermId:   sell.id_terminal,
                 });
             }
         }
@@ -1119,9 +1347,11 @@ async function calculate(){
         const routes = calcRoutes(prices, comms, cfg);
         const circuits = calcMultiHop(prices, comms, cfg);
         S.prices=prices; S.comms=comms; S.routes=routes; S.filtered=routes; S.circuits=circuits;
+        // Construire la liste des terminaux dès maintenant (autocomplete dispo avant recalcul)
+        S.termNames = [...new Set(prices.map(p=>p.terminal_name).filter(Boolean))].sort();
 
         // LABS : Sauvegarder dans l'historique
-        const shipName = document.getElementById('shipSelect')?.options[document.getElementById('shipSelect').selectedIndex]?.text || '';
+        const shipName = document.getElementById('shipSel')?.options[document.getElementById('shipSel').selectedIndex]?.text || '';
         saveHistory(routes, circuits, cfg, shipName);
         renderHistory();
 
@@ -1199,7 +1429,16 @@ function calcMultiHop(prices, comms, cfg){
                 if(!sellP) continue;
                 const profScu = sellP.price_sell - buyP.price_buy;
                 if(profScu <= 0) continue;
-                if(!best || profScu > best.profScu) best = {cid, buyP, sellP, profScu};
+                // Compare sur le profit TOTAL réel (pas juste /SCU) :
+                // tient compte du stock d'achat, capacité vente ET capacité vaisseau
+                const _scu       = cfg.scu || 1e6;
+                const availStock = buyP.scu_buy > 0 ? buyP.scu_buy : _scu;
+                const sellAbsorb = (cfg.checkSellCap && sellP.scu_sell_stock > 0) ? sellP.scu_sell_stock : _scu;
+                const projUnits  = Math.min(_scu, availStock, sellAbsorb);
+                const projProfit = profScu * projUnits;
+                if(!best || projProfit > best.projProfit){
+                    best = {cid, buyP, sellP, profScu, projProfit};
+                }
             }
             if(best){
                 const entry = {toId:to.id, toName:to.name, toLoc:to.loc, toSys:to.sys,
@@ -1238,25 +1477,26 @@ function calcMultiHop(prices, comms, cfg){
         const c = comms[trade.cid] || {};
         const legProfit = trade.profScu * units;
         return { constraint, constraintTip,
-            fromTid:    fromTerm.id,
-            fromName:   fromTerm.name,
-            fromLoc:    [fromTerm.loc, fromTerm.sys].filter(Boolean).join(' — '),
-            fromOrbit:  fromTerm.orbit  || '',
-            fromPlanet: fromTerm.planet || '',
-            toTid:      trade.toId,
-            toName:     trade.toName,
-            toLoc:      [trade.toLoc, trade.toSys].filter(Boolean).join(' — '),
-            toOrbit:    trade.toOrbit   || '',
-            toPlanet:   trade.toPlanet  || '',
-            commodity: trade.buyP.commodity_name || c.name || '?',
-            comCode:   trade.buyP.commodity_code  || c.code || '',
-            illegal:   c.illegal || 0,
-            buyPrice:  trade.buyP.price_buy,
-            sellPrice: trade.sellP.price_sell,
-            profScu:   trade.profScu,
+            fromTid:     fromTerm.id,
+            fromName:    fromTerm.name,
+            fromLoc:     [fromTerm.loc, fromTerm.sys].filter(Boolean).join(' — '),
+            fromOrbit:   fromTerm.orbit  || '',
+            fromPlanet:  fromTerm.planet || '',
+            toTid:       trade.toId,
+            toName:      trade.toName,
+            toLoc:       [trade.toLoc, trade.toSys].filter(Boolean).join(' — '),
+            toOrbit:     trade.toOrbit   || '',
+            toPlanet:    trade.toPlanet  || '',
+            commodity:   trade.buyP.commodity_name || c.name || '?',
+            comCode:     trade.buyP.commodity_code  || c.code || '',
+            illegal:     c.illegal || 0,
+            commodityId: +trade.cid,
+            buyPrice:    trade.buyP.price_buy,
+            sellPrice:   trade.sellP.price_sell,
+            profScu:     trade.profScu,
             units,
             legProfit,
-            investment: trade.buyP.price_buy * units,
+            investment:  trade.buyP.price_buy * units,
             stockCur:    trade.buyP.scu_buy        || 0,
             stockMax:    trade.buyP.scu_buy_max    || 0,
             sellCur:     trade.sellP.scu_sell_stock || 0,
@@ -1378,9 +1618,13 @@ function renderMultiHop(chains){
     const wrap = document.getElementById('tblWrap');
 
     if(!chains || !chains.length){
+        const selSys = document.getElementById('sysFilter').value;
+        const sysMsg = selSys
+            ? `<br><span style="color:var(--amber)">⚠️ Le système <strong>${selSys}</strong> n'a peut-être pas encore de données de prix dans UEX.<br>Essaie <strong>"Tous les systèmes"</strong> ou sélectionne <strong>Stanton</strong>.</span>`
+            : '';
         wrap.innerHTML=`<div class="state-box">
             <div class="state-title">Aucun circuit trouvé</div>
-            <div class="state-sub">Essaie de réduire le profit minimum, d'augmenter le budget ou de désactiver "stations uniquement".</div>
+            <div class="state-sub">Essaie de réduire le profit minimum, d'augmenter le budget ou de désactiver "stations uniquement".${sysMsg}</div>
         </div>`;
         return;
     }
@@ -1389,7 +1633,10 @@ function renderMultiHop(chains){
     const display = chains.slice(0, 100);
     const nClosed = chains.filter(c => c.closed).length;
 
-    const cards = display.map(chain => {
+    // Stocke les circuits pour la validation par leg
+    window._vCircuits = display;
+
+    const cards = display.map((chain, cIdx) => {
         const totalCls = chain.totalProfit >= maxP*.65 ? 'pr-high'
                        : chain.totalProfit >= maxP*.25 ? 'pr-med' : 'pr-low';
 
@@ -1421,6 +1668,23 @@ function renderMultiHop(chains){
             const stepLbl  = leg.isReturn
                 ? `<div class="mh-step-n" style="color:var(--green)">↩ Retour origine</div>`
                 : `<div class="mh-step-n">Étape ${i+1}</div>`;
+            // Boutons actions par leg (refresh + validation) — pas sur le retour à vide
+            const legActionsHtml = !leg.isReturn ? `
+                <div class="leg-actions">
+                    <button class="btn-leg-refresh" id="btnRef-${cIdx}-${i}"
+                            onclick="refreshLeg(${cIdx},${i})"
+                            title="Vérifie le stock en temps réel avant d'y aller">
+                        🔄 Actualiser le stock
+                    </button>
+                    <div id="legSt-${cIdx}-${i}" class="leg-status"></div>
+                    <button class="btn-validate btn-validate-leg" onclick="openValidateLeg(${cIdx},${i})"
+                            title="J'ai fait ce trajet — contribuer aux données UEX">
+                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;margin-right:4px">
+                            <circle cx="8" cy="8" r="7" stroke="#10b981" stroke-width="1.5"/>
+                            <path d="M4.5 8.5L6.8 11L11.5 5.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>Valider ce leg
+                    </button>
+                </div>` : '';
             return `<div class="mh-leg" style="${retStyle}">
                 ${stepLbl}
                 <div class="mh-from" title="${esc(leg.fromName)}">${esc(leg.fromName)}<button class="btn-setpos" onclick="setPosition('${esc2(leg.fromName)}')" title="Recalculer depuis ce terminal">📍 Je suis ici</button></div>
@@ -1437,6 +1701,7 @@ function renderMultiHop(chains){
                 <div class="mh-profit ${pCls}">+${fmtAuec(leg.legProfit)}</div>
                 ${stockBar(leg.stockCur, leg.stockMax, '📦', 'Stock dispo')}
                 ${stockBar(leg.sellCur,  leg.sellMax,  '🛒', 'Capacité vente')}
+                ${legActionsHtml}
             </div>`;
         }).join('');
 
@@ -1492,9 +1757,13 @@ function renderTable(routes){
     const wrap = document.getElementById('tblWrap');
 
     if(!routes.length){
+        const selSys = document.getElementById('sysFilter').value;
+        const sysMsg = selSys
+            ? `<br><span style="color:var(--amber)">⚠️ Le système <strong>${selSys}</strong> n'a peut-être pas encore de données de prix dans UEX.<br>Essaie <strong>"Tous les systèmes"</strong> ou sélectionne <strong>Stanton</strong>.</span>`
+            : '';
         wrap.innerHTML=`<div class="state-box">
             <div class="state-title">Aucune route trouvée</div>
-            <div class="state-sub">Essaie d'ajuster les filtres : budget, SCU, profit minimum, ou désactive "stations uniquement".</div>
+            <div class="state-sub">Essaie d'ajuster les filtres : budget, SCU, profit minimum, ou désactive "stations uniquement".${sysMsg}</div>
         </div>`;
         return;
     }
@@ -1505,7 +1774,8 @@ function renderTable(routes){
 
     const th=(col,lbl,right=false)=>`<th onclick="sortBy('${col}')" class="${sk===col?'sorted':''}" ${right?'style="text-align:right"':''}>${lbl} <span>${sk===col?(sd<0?'↓':'↑'):'↕'}</span></th>`;
 
-    const rows = display.map(r=>{
+    window._vRoutes = display;
+    const rows = display.map((r,_ri)=>{
         const pct  = Math.round(r.totalProfit/maxP*100);
         const pcls = r.totalProfit>=maxP*.65?'pr-high':r.totalProfit>=maxP*.25?'pr-med':'pr-low';
         const fcls = pcls.replace('pr-','fill-');
@@ -1514,8 +1784,6 @@ function renderTable(routes){
         const slLoc = [r.sellLoc, r.sellSys].filter(Boolean).join(' — ');
         const tripMin  = estimateLegMin(r.buyOrbit, r.buyPlanet, r.sellOrbit, r.sellPlanet, r.units);
         const aph      = auecPerHour(r.totalProfit, tripMin);
-        const copyTxt = `Acheter ${r.commodity} @ ${r.buyTerminal} ${r.buyPrice.toLocaleString()} aUEC/SCU → Vendre @ ${r.sellTerminal} ${r.sellPrice.toLocaleString()} aUEC/SCU | +${r.profScu.toLocaleString()}/SCU × ${r.units} = ${fmtAuec(r.totalProfit)}`;
-
         return `<tr>
             <td><div class="t-name">${esc(r.commodity)}${ill}</div><div class="t-loc" style="color:var(--text-3)">${esc(r.comCode)}</div></td>
             <td>
@@ -1542,7 +1810,12 @@ function renderTable(routes){
                 <div class="t-time">⏱ ~${fmtTime(tripMin)}</div>
                 <div class="t-aph">~${fmtAuec(aph)}/h</div>
             </td>
-            <td><button class="btn-copy" onclick="copyRoute(this,'${esc2(copyTxt)}')">📋</button></td>
+            <td><button class="btn-validate" onclick="openValidate(${_ri})" title="J'ai fait ce trade — contribue aux données UEX">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="8" r="7" stroke="#10b981" stroke-width="1.5"/>
+                    <path d="M4.5 8.5L6.8 11L11.5 5.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button></td>
         </tr>`;
     }).join('');
 
@@ -1559,7 +1832,9 @@ function renderTable(routes){
                 ${th('investment','Invest.',true)}
                 ${th('totalProfit','Profit Total',true)}
                 <th style="text-align:right">⏱ Temps <span class="est-tag">est.</span></th>
-                <th>Copier</th>
+                <th title="J'ai fait ce trade — contribue aux données UEX">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#10b981" stroke-width="1.5"/><path d="M4.5 8.5L6.8 11L11.5 5.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </th>
             </tr></thead>
             <tbody>${rows}</tbody>
         </table>
@@ -1600,14 +1875,14 @@ function filterStartTermList(){
     const clearBtn = document.getElementById('startTermClear');
     clearBtn.style.display = q ? '' : 'none';
 
-    if(!q || !S.routes.length){ list.innerHTML=''; list.style.display='none'; return; }
+    if(!q){ list.innerHTML=''; list.style.display='none'; return; }
 
-    // Collecter tous les terminaux uniques des routes chargées
-    const names = new Set([
-        ...S.routes.map(r=>r.buyTerminal),
-        ...S.routes.map(r=>r.sellTerminal)
-    ]);
-    const matches = [...names].filter(n=>n.toLowerCase().includes(q)).slice(0,10);
+    // Utiliser la liste complète des terminaux (dispo dès le chargement des données)
+    const names = S.termNames?.length ? S.termNames : [
+        ...new Set([...S.routes.map(r=>r.buyTerminal), ...S.routes.map(r=>r.sellTerminal)])
+    ];
+    if(!names.length){ list.innerHTML=''; list.style.display='none'; return; }
+    const matches = names.filter(n=>n.toLowerCase().includes(q)).slice(0,10);
 
     if(!matches.length){ list.innerHTML=''; list.style.display='none'; return; }
     list.style.display='';
@@ -1863,6 +2138,417 @@ document.addEventListener('click', e=>{
 
 // Charger l'historique au démarrage
 renderHistory();
+
+// ═══════════════════════════════════════════
+//  LABS : ACTUALISATION STOCK EN TEMPS RÉEL
+// ═══════════════════════════════════════════
+async function refreshLeg(cIdx, lIdx){
+    const statusEl = document.getElementById(`legSt-${cIdx}-${lIdx}`);
+    const btnEl    = document.getElementById(`btnRef-${cIdx}-${lIdx}`);
+    const chain    = (window._vCircuits || [])[cIdx];
+    if(!chain || !statusEl) return;
+    const leg = chain.legs[lIdx];
+    if(!leg || leg.isReturn) return;
+
+    // UI : chargement
+    if(btnEl){ btnEl.disabled = true; btnEl.textContent = '⏳ Vérification…'; }
+    statusEl.innerHTML = '';
+
+    try{
+        // Fetch direct (bypass cache localStorage) — stock temps réel
+        const resp = await fetch(`${API}/commodities_prices/id_terminal/${leg.fromTid}`);
+        if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const json  = await resp.json();
+        const prices = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+
+        // Trouver la commodity au terminal d'achat
+        const p = prices.find(x => +x.id_commodity === leg.commodityId && x.price_buy > 0);
+
+        const freshStock = p ? (p.scu_buy || 0) : 0;
+        const freshPrice = p ? (p.price_buy || 0) : 0;
+        const needed     = leg.units;
+
+        // Position actuelle du joueur = "Je suis ici" si défini, sinon départ du circuit
+        const currentPos = S.startTerminalName || chain.legs[0].fromName;
+
+        if(!p || freshStock === 0){
+            // Stock vide
+            statusEl.innerHTML = `
+                <div style="color:var(--red);font-weight:600;margin-bottom:3px">
+                    🚫 Stock vide — <strong>${esc(leg.commodity)}</strong> épuisé à ${esc(leg.fromName)}
+                </div>
+                <button class="btn-recalc-here" onclick="setPosition('${esc2(currentPos)}')">
+                    📍 Recalculer le circuit depuis ${esc(currentPos)}
+                </button>`;
+        } else if(freshStock < needed){
+            // Stock insuffisant
+            const pct = Math.round(freshStock / needed * 100);
+            statusEl.innerHTML = `
+                <div style="color:var(--amber);font-weight:600;margin-bottom:3px">
+                    ⚠️ Stock insuffisant — ${freshStock.toLocaleString()} SCU dispo
+                    sur ${needed.toLocaleString()} nécessaires (${pct}%)
+                </div>
+                <button class="btn-recalc-here" onclick="setPosition('${esc2(currentPos)}')">
+                    📍 Recalculer le circuit depuis ${esc(currentPos)}
+                </button>`;
+        } else {
+            // Stock OK — signaler si le prix a changé
+            const priceChanged = freshPrice && Math.abs(freshPrice - leg.buyPrice) > 1;
+            const priceNote    = priceChanged
+                ? ` &nbsp;·&nbsp; Prix actuel : <span style="color:var(--amber)">${freshPrice.toLocaleString()} aUEC/SCU</span> <span style="color:var(--text-3)">(calculé : ${leg.buyPrice.toLocaleString()})</span>`
+                : '';
+            statusEl.innerHTML = `
+                <span style="color:var(--green);font-weight:600">
+                    ✅ Stock OK — ${freshStock.toLocaleString()} SCU dispo${priceNote}
+                </span>`;
+        }
+    }catch(e){
+        statusEl.innerHTML = `<span style="color:var(--red)">⚠️ Erreur réseau : ${e.message}</span>`;
+    }finally{
+        if(btnEl){ btnEl.disabled = false; btnEl.textContent = '🔄 Actualiser le stock'; }
+    }
+}
+
+// ═══════════════════════════════════════════
+//  LABS : VALIDATION TRADE → RAPPORT UEX
+// ═══════════════════════════════════════════
+let _vCurrent = null;
+
+/** Ouvre la modal de validation pour un leg de circuit */
+function openValidateLeg(cIdx, lIdx){
+    const chain = (window._vCircuits || [])[cIdx];
+    if(!chain) return;
+    const leg = chain.legs[lIdx];
+    if(!leg || leg.isReturn) return;
+
+    // Convertit le leg au même format qu'une route simple
+    _vCurrent = {
+        commodity:    leg.commodity,
+        buyTerminal:  leg.fromName,
+        sellTerminal: leg.toName,
+        commodityId:  leg.commodityId,
+        buyTermId:    leg.fromTid,
+        sellTermId:   leg.toTid,
+        buyPrice:     leg.buyPrice,
+        sellPrice:    leg.sellPrice,
+        units:        leg.units,
+        totalProfit:  leg.legProfit,
+        _isLeg:       true,
+        _legLabel:    `Circuit — Étape ${lIdx+1}`
+    };
+
+    // Pré-remplir la modal
+    document.getElementById('vmRoute').innerHTML =
+        `<strong style="color:var(--cyan)">${esc(_vCurrent._legLabel)}</strong><br>
+         ${esc(leg.commodity)} &nbsp;·&nbsp;
+         🏪 <strong>${esc(leg.fromName)}</strong> → <strong>${esc(leg.toName)}</strong><br>
+         📊 Qté : ${leg.units.toLocaleString()} SCU &nbsp;·&nbsp; Profit leg : <strong style="color:var(--green)">${fmtAuec(leg.legProfit)}</strong>`;
+
+    document.getElementById('vmBuyPrice').value  = leg.buyPrice;
+    document.getElementById('vmSellPrice').value = leg.sellPrice;
+    document.getElementById('vmScu').value        = '';
+    document.getElementById('vmHandle').value     = localStorage.getItem('sf_rsi_handle') || '';
+    document.getElementById('vmMsg').textContent  = '';
+    document.getElementById('vmMsg').style.color  = '';
+    document.getElementById('vmSubmit').disabled  = false;
+    document.getElementById('vmSubmit').textContent = '📤 Envoyer à UEX';
+    document.getElementById('validateModal').style.display = 'flex';
+}
+
+function openValidate(idx){
+    _vCurrent = (window._vRoutes || [])[idx];
+    if(!_vCurrent) return;
+    const r = _vCurrent;
+
+    // Info route
+    document.getElementById('vmRoute').innerHTML =
+        `<strong>${esc(r.commodity)}</strong><br>
+         📦 Achat : <strong>${esc(r.buyTerminal)}</strong> — ${r.buyPrice.toLocaleString()} aUEC/SCU<br>
+         💰 Vente : <strong>${esc(r.sellTerminal)}</strong> — ${r.sellPrice.toLocaleString()} aUEC/SCU<br>
+         📊 Qté : ${r.units.toLocaleString()} SCU &nbsp;·&nbsp; Profit : <strong style="color:var(--green)">${fmtAuec(r.totalProfit)}</strong>`;
+
+    // Pré-remplir
+    document.getElementById('vmBuyPrice').value  = r.buyPrice;
+    document.getElementById('vmSellPrice').value = r.sellPrice;
+    document.getElementById('vmScu').value        = '';
+    document.getElementById('vmHandle').value      = localStorage.getItem('sf_rsi_handle') || '';
+    document.getElementById('vmMsg').textContent   = '';
+    document.getElementById('vmMsg').style.color   = '';
+    document.getElementById('vmSubmit').disabled   = false;
+    document.getElementById('vmSubmit').textContent = '📤 Envoyer à UEX';
+    document.getElementById('validateModal').style.display = 'flex';
+}
+
+function closeValidate(){
+    document.getElementById('validateModal').style.display = 'none';
+    _vCurrent = null;
+}
+
+async function submitValidate(){
+    const r        = _vCurrent;
+    const handle   = document.getElementById('vmHandle').value.trim();
+    const buyPrice = parseFloat(document.getElementById('vmBuyPrice').value);
+    const sellPrice= parseFloat(document.getElementById('vmSellPrice').value);
+    const scu      = parseInt(document.getElementById('vmScu').value);
+    const msg      = document.getElementById('vmMsg');
+    const btn      = document.getElementById('vmSubmit');
+
+    if(!handle)              { msg.style.color='var(--red)'; msg.textContent='⚠️ Handle RSI requis.'; return; }
+    if(!buyPrice  || buyPrice <=0){ msg.style.color='var(--red)'; msg.textContent='⚠️ Prix d\'achat invalide.'; return; }
+    if(!sellPrice || sellPrice<=0){ msg.style.color='var(--red)'; msg.textContent='⚠️ Prix de vente invalide.'; return; }
+    if(!scu || scu<=0)       { msg.style.color='var(--red)'; msg.textContent='⚠️ Stock achat (SCU) requis.'; return; }
+
+    // Sauvegarder le handle
+    localStorage.setItem('sf_rsi_handle', handle);
+
+    btn.disabled = true;
+    msg.style.color = 'var(--text-2)';
+    msg.textContent = '⏳ Envoi en cours…';
+
+    try{
+        // Structure correcte selon la doc UEX API 2.0 :
+        //  - type: 'commodity'
+        //  - prices: tableau avec price_buy/price_sell + scu_buy
+        //  - id_terminal: top-level (un terminal par requête)
+        //  - is_production: 1
+        //  - details: handle RSI pour traçabilité
+
+        const buyPayload = {
+            id_terminal:   r.buyTermId,
+            type:          'commodity',
+            is_production: 1,
+            prices: [{ id_commodity: r.commodityId, price_buy: buyPrice, scu_buy: scu }],
+            details: `RSI: ${handle}`
+        };
+
+        const sellPayload = {
+            id_terminal:   r.sellTermId,
+            type:          'commodity',
+            is_production: 1,
+            prices: [{ id_commodity: r.commodityId, price_sell: sellPrice }],
+            details: `RSI: ${handle}`
+        };
+
+        const endpoint = `${API}/data_submit`;
+        const [rBuy, rSell] = await Promise.all([
+            fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buyPayload) }),
+            fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sellPayload) })
+        ]);
+
+        const jBuy  = await rBuy.json().catch(()=>({}));
+        const jSell = await rSell.json().catch(()=>({}));
+
+        if(rBuy.ok && rSell.ok){
+            msg.style.color = 'var(--green)';
+            msg.textContent = '✅ Rapport envoyé à UEX — merci pour ta contribution !';
+            btn.textContent = '✅ Envoyé';
+            setTimeout(closeValidate, 2500);
+        } else {
+            // Afficher la réponse brute pour debug — UEX peut renvoyer des messages utiles
+            const failResp = !rBuy.ok ? jBuy : jSell;
+            const rawErr   = failResp.message || failResp.error || failResp.status || JSON.stringify(failResp).slice(0,120);
+            const httpErr  = `HTTP ${rBuy.ok ? rSell.status : rBuy.status}`;
+            // Message lisible : si UEX réclame un screenshot → explication claire
+            const needsScreenshot = rawErr && rawErr.toLowerCase().includes('screenshot');
+            msg.style.color = 'var(--red)';
+            msg.textContent = needsScreenshot
+                ? '⚠️ UEX exige une capture d\'écran pour les nouveaux contributeurs (période d\'évaluation 90j). Fonctionnalité non disponible dans l\'app.'
+                : `⚠️ Erreur UEX : ${rawErr || httpErr}`;
+            btn.disabled = false;
+        }
+    }catch(e){
+        msg.style.color = 'var(--red)';
+        msg.textContent = `⚠️ Erreur réseau : ${e.message}`;
+        btn.disabled = false;
+    }
+}
 </script>
+<script>
+// ═══════════════════════════════════════════
+//  TUTORIEL ONBOARDING
+// ═══════════════════════════════════════════
+const TUTO_STEPS = [
+  {
+    icon: '🚀',
+    label: 'Étape 1 sur 6',
+    title: 'Bienvenue sur SC Trade Routes',
+    desc: `Cet outil calcule les <strong>meilleures routes commerciales</strong> de Star Citizen en temps réel, grâce aux données communautaires <span class="hl-cyan">UEX Corp</span>.<br><br>
+En quelques clics, tu sais <strong>quoi acheter, où, et à qui vendre</strong> pour maximiser ton profit par heure de jeu.<br><br>
+Ce guide te montre comment utiliser l'outil <strong>dans le bon ordre</strong> pour en tirer le maximum.`,
+    tip: '💡 Les données proviennent des joueurs eux-mêmes. Plus tu valides tes trades, plus les données sont précises pour tout le monde.'
+  },
+  {
+    icon: '⚙️',
+    label: 'Étape 2 sur 6',
+    title: 'Configure ton vaisseau et ton budget',
+    desc: `Commence par renseigner deux informations essentielles dans le panneau de gauche :<br><br>
+<strong>🚀 Vaisseau</strong> — Sélectionne ton modèle dans la liste. La capacité cargo se remplit automatiquement. Si ton vaisseau n'est pas dans la liste, coche <em>"Valeur personnalisée"</em> et saisis ton SCU manuellement.<br><br>
+<strong>💰 Budget</strong> — Entre le capital que tu veux investir (en aUEC). Laisse vide pour illimité.`,
+    tip: '⚠️ Ces deux valeurs déterminent directement les quantités proposées. Un budget serré ou un petit cargo = des routes adaptées à ta situation réelle.',
+    tipColor: 'amber'
+  },
+  {
+    icon: '🔍',
+    label: 'Étape 3 sur 6',
+    title: 'Calcule tes routes',
+    desc: `Clique sur <span class="hl-cyan">⚡ Calculer les routes</span> pour lancer l'analyse.<br><br>
+Tu as deux modes de vue :<br><br>
+<strong>Trajets simples</strong> — Un aller direct : achète ici, vends là-bas. Idéal pour commencer ou tester une marchandise.<br><br>
+<strong>⟳ Circuits</strong> — Plusieurs étapes enchaînées pour maximiser le profit sur un seul plein de cargo. L'algo choisit les combinaisons qui remplissent au mieux ton vaisseau.`,
+    tip: '💡 La première fois, le chargement prend quelques secondes. Ensuite les données sont mises en cache 3 minutes pour des recalculs instantanés.'
+  },
+  {
+    icon: '📊',
+    label: 'Étape 4 sur 6',
+    title: 'Lis les résultats et pars en jeu',
+    desc: `Chaque route indique :<br><br>
+<strong>📦 Stock</strong> — Ce qui est disponible à l'achat. La barre montre le niveau de remplissage du terminal.<br>
+<strong>🛒 Capacité vente</strong> — Ce que la station peut absorber. L'outil ne te propose que ce que tu peux vendre intégralement.<br>
+<strong>⏱ Temps estimé · aUEC/h</strong> — Pour comparer les routes à heure égale.<br><br>
+Sur les <strong>circuits</strong>, clique <span class="hl-cyan">🔄 Actualiser le stock</span> sur chaque étape avant d'y aller — si le stock est vide, l'outil te propose de <strong>recalculer depuis ta position actuelle</strong>.`,
+    tip: '💡 Les badges 💰 Budget / 📦 Stock / 🛒 Vente indiquent ce qui a limité la quantité recommandée.',
+    tipColor: 'cyan'
+  },
+  {
+    icon: '✅',
+    label: 'Étape 5 sur 6 — LA PLUS IMPORTANTE',
+    title: 'Valide ton trade après chaque trajet',
+    desc: `Une fois le trade effectué en jeu, reviens sur l'outil et clique le bouton <span class="hl-green">✅</span> sur la route ou l'étape que tu viens de faire.<br><br>
+Le formulaire te demande :<br>
+<strong>• Handle RSI</strong> — Ton pseudo Star Citizen (sauvegardé pour la prochaine fois)<br>
+<strong>• Prix achat réel</strong> — Ce que tu as payé en jeu<br>
+<strong>• Prix vente réel</strong> — Ce que tu as encaissé<br>
+<strong>• Stock disponible</strong> — Ce que tu as vu au terminal d'achat<br><br>
+Ces données sont envoyées à <span class="hl-cyan">UEX Corp</span> et améliorent les calculs pour <strong>toute la communauté Streamer Forge</strong>.`,
+    tip: '🌟 Plus les joueurs valident, plus les données sont fiables et les routes optimales. C\'est toi qui fais vivre l\'outil.',
+    tipColor: 'green'
+  },
+  {
+    icon: '🎯',
+    label: 'Étape 6 sur 6',
+    title: 'Tu es prêt !',
+    desc: `Voici le workflow idéal à suivre à chaque session :<br><br>
+<span class="hl-cyan">1.</span> Configure vaisseau + budget<br>
+<span class="hl-cyan">2.</span> Calcule les routes ou circuits<br>
+<span class="hl-cyan">3.</span> Sur un circuit : <strong>actualise le stock</strong> de l'étape suivante avant de partir<br>
+<span class="hl-cyan">4.</span> Fais le trade en jeu<br>
+<span class="hl-cyan">5.</span> <span class="hl-green">Valide le trajet</span> — prix réels + stock observé<br>
+<span class="hl-cyan">6.</span> Répète pour chaque étape<br><br>
+Le bouton <strong>❓ Guide</strong> dans le header te ramène ici à tout moment.`,
+    tip: '🙏 Merci de faire partie de la communauté Streamer Forge. Chaque validation compte !',
+    tipColor: 'green'
+  }
+];
+
+let _tutoIdx = 0;
+
+function openTuto(startIdx = 0){
+    _tutoIdx = startIdx;
+    document.getElementById('tutoOverlay').style.display = 'flex';
+    renderTutoStep();
+}
+
+function closeTuto(){
+    document.getElementById('tutoOverlay').style.display = 'none';
+    localStorage.setItem('sf_tuto_done', '1');
+}
+
+function tutoStep(dir){
+    const next = _tutoIdx + dir;
+    if(next < 0) return;
+    if(next >= TUTO_STEPS.length){ closeTuto(); return; }
+    _tutoIdx = next;
+    renderTutoStep();
+}
+
+function renderTutoStep(){
+    const s   = TUTO_STEPS[_tutoIdx];
+    const tot = TUTO_STEPS.length;
+    const pct = Math.round((_tutoIdx + 1) / tot * 100);
+
+    // Progress bar
+    document.getElementById('tutoBar').style.width = pct + '%';
+
+    // Dots
+    document.getElementById('tutoDots').innerHTML = TUTO_STEPS.map((_,i) =>
+        `<div class="tuto-dot ${i===_tutoIdx?'active':i<_tutoIdx?'done':''}" onclick="jumpTuto(${i})"></div>`
+    ).join('');
+
+    // Boutons nav
+    document.getElementById('tutoPrev').style.visibility = _tutoIdx === 0 ? 'hidden' : 'visible';
+    const nextBtn = document.getElementById('tutoNext');
+    nextBtn.textContent = _tutoIdx === tot-1 ? '🚀 C\'est parti !' : 'Suivant →';
+
+    // Contenu
+    const tipCls = s.tipColor === 'green' ? 'green' : s.tipColor === 'amber' ? 'amber' : '';
+    document.getElementById('tutoBody').innerHTML = `
+        <div class="tuto-step-label">${s.label}</div>
+        <span class="tuto-icon">${s.icon}</span>
+        <div class="tuto-title">${s.title}</div>
+        <div class="tuto-desc">${s.desc}</div>
+        ${s.tip ? `<div class="tuto-tip ${tipCls}">${s.tip}</div>` : ''}
+    `;
+}
+
+function jumpTuto(i){
+    _tutoIdx = i;
+    renderTutoStep();
+}
+
+// Afficher automatiquement à la première visite
+if(!localStorage.getItem('sf_tuto_done')){
+    setTimeout(() => openTuto(), 600);
+}
+</script>
+
+<!-- ── TUTORIEL ONBOARDING ── -->
+<div class="tuto-overlay" id="tutoOverlay" style="display:none">
+    <div class="tuto-box">
+        <div class="tuto-progress"><div class="tuto-progress-bar" id="tutoBar"></div></div>
+        <div class="tuto-body" id="tutoBody"></div>
+        <div class="tuto-footer">
+            <div class="tuto-dots" id="tutoDots"></div>
+            <div class="tuto-nav">
+                <button class="btn-tuto-skip" onclick="closeTuto()">Passer</button>
+                <button class="btn-tuto-prev" id="tutoPrev" onclick="tutoStep(-1)">← Retour</button>
+                <button class="btn-tuto-next" id="tutoNext" onclick="tutoStep(1)">Suivant →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL VALIDATION TRADE ── -->
+<div class="modal-overlay" id="validateModal" style="display:none" onclick="if(event.target===this)closeValidate()">
+    <div class="modal-box">
+        <div class="modal-title">✅ Valider ce trade</div>
+        <div class="modal-route" id="vmRoute"></div>
+        <div class="modal-handle">
+            <label class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.8px">Handle RSI <span style="color:var(--red)">*</span></label>
+            <input type="text" id="vmHandle" placeholder="Ton handle RSI (ex: Vinyle)" style="font-size:12px">
+            <div style="font-size:10px;color:var(--text-3);margin-top:3px">Sauvegardé localement — utilisé pour la traçabilité des rapports.</div>
+        </div>
+        <div style="font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Confirme les prix réels observés en jeu</div>
+        <div class="modal-grid">
+            <div class="modal-field">
+                <label>Prix achat/SCU</label>
+                <input type="number" id="vmBuyPrice" min="0" step="0.01" style="font-size:12px">
+            </div>
+            <div class="modal-field">
+                <label>Prix vente/SCU</label>
+                <input type="number" id="vmSellPrice" min="0" step="0.01" style="font-size:12px">
+            </div>
+            <div class="modal-field">
+                <label>Stock achat (SCU) <span style="color:var(--red)">*</span></label>
+                <input type="number" id="vmScu" min="1" step="1" placeholder="Ex: 400" style="font-size:12px">
+            </div>
+        </div>
+        <div class="modal-msg" id="vmMsg"></div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeValidate()">Annuler</button>
+            <button class="btn-modal-submit" id="vmSubmit" onclick="submitValidate()">📤 Envoyer à UEX</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
