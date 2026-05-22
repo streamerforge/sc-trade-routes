@@ -27,7 +27,9 @@ export async function onRequest(context) {
 
   // Entêtes à envoyer à UEX
   const headers = { 'Content-Type': 'application/json' };
-  if (env.UEX_API_KEY) headers['secret-key'] = env.UEX_API_KEY;
+  if (env.UEX_API_KEY) {
+    headers['secret-key'] = env.UEX_API_KEY;
+  }
 
   // Options fetch selon la méthode
   const fetchOpts = { method: request.method, headers };
@@ -43,8 +45,17 @@ export async function onRequest(context) {
     ? 'no-store'
     : 'public, max-age=180';
 
+  // Header debug temporaire — indique si la clé était présente (sans l'exposer)
+  const debugHeaders = {
+    'Content-Type': 'application/json',
+    'Cache-Control': cacheHeader,
+    'X-Debug-Key-Present': env.UEX_API_KEY ? `yes-${env.UEX_API_KEY.length}chars` : 'NO-KEY',
+    'X-Debug-UEX-Status': String(uexResp.status),
+    ...CORS,
+  };
+
   return new Response(body, {
     status: uexResp.status,
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': cacheHeader, ...CORS },
+    headers: debugHeaders,
   });
 }
