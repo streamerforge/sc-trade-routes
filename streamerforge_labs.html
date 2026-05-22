@@ -2246,7 +2246,7 @@ function openValidateLeg(cIdx, lIdx){
 
     document.getElementById('vmBuyPrice').value  = leg.buyPrice;
     document.getElementById('vmSellPrice').value = leg.sellPrice;
-    document.getElementById('vmScu').value        = '';
+    document.getElementById('vmScu').value        = Math.max(0, (leg.stockCur || 0) - (leg.units || 0));
     document.getElementById('vmHandle').value     = localStorage.getItem('sf_rsi_handle') || '';
     document.getElementById('vmMsg').textContent  = '';
     document.getElementById('vmMsg').style.color  = '';
@@ -2270,7 +2270,7 @@ function openValidate(idx){
     // Pré-remplir
     document.getElementById('vmBuyPrice').value  = r.buyPrice;
     document.getElementById('vmSellPrice').value = r.sellPrice;
-    document.getElementById('vmScu').value        = '';
+    document.getElementById('vmScu').value        = Math.max(0, (r.stockCur || 0) - (r.units || 0));
     document.getElementById('vmHandle').value      = localStorage.getItem('sf_rsi_handle') || '';
     document.getElementById('vmMsg').textContent   = '';
     document.getElementById('vmMsg').style.color   = '';
@@ -2296,7 +2296,7 @@ async function submitValidate(){
     if(!handle)              { msg.style.color='var(--red)'; msg.textContent='⚠️ Handle RSI requis.'; return; }
     if(!buyPrice  || buyPrice <=0){ msg.style.color='var(--red)'; msg.textContent='⚠️ Prix d\'achat invalide.'; return; }
     if(!sellPrice || sellPrice<=0){ msg.style.color='var(--red)'; msg.textContent='⚠️ Prix de vente invalide.'; return; }
-    if(!scu || scu<=0)       { msg.style.color='var(--red)'; msg.textContent='⚠️ Stock achat (SCU) requis.'; return; }
+    if(isNaN(scu) || scu < 0){ msg.style.color='var(--red)'; msg.textContent='⚠️ Stock restant requis (0 si épuisé).'; return; }
 
     // Sauvegarder le handle
     localStorage.setItem('sf_rsi_handle', handle);
@@ -2538,8 +2538,8 @@ if(!localStorage.getItem('sf_tuto_done')){
                 <input type="number" id="vmSellPrice" min="0" step="0.01" style="font-size:12px">
             </div>
             <div class="modal-field">
-                <label>Stock achat (SCU) <span style="color:var(--red)">*</span></label>
-                <input type="number" id="vmScu" min="1" step="1" placeholder="Ex: 400" style="font-size:12px">
+                <label>Stock restant après achat <span style="color:var(--red)">*</span></label>
+                <input type="number" id="vmScu" min="0" step="1" placeholder="SCU encore dispo au terminal" style="font-size:12px">
             </div>
         </div>
         <div class="modal-msg" id="vmMsg"></div>
