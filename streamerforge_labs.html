@@ -576,7 +576,7 @@
             font-size: 11px; color: var(--text-2); margin-bottom: 14px; line-height: 1.9;
         }
         .modal-route strong { color: var(--text); }
-        .modal-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-bottom: 12px; }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-bottom: 12px; align-items: end; }
         .modal-field label { display: block; font-size: 10px; color: var(--text-2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .8px; }
         .modal-handle { margin-bottom: 12px; }
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
@@ -1108,6 +1108,10 @@ const TRANSLATIONS = {
     'refresh.networkError':'⚠️ Erreur réseau : {msg}',
     'modal.title':'✅ Valider ce trade','modal.handlePlaceholder':'Ton handle RSI (ex: Vinyle)',
     'modal.handleHint':'Sauvegardé localement — utilisé pour la traçabilité des rapports.',
+    'modal.drToggle':'⚡ DataRunner — utilise ta propre clé UEX',
+    'modal.drKeyPlaceholder':'Clé secrète UEX (secret-key)',
+    'modal.drKeyHint':'Stockée localement, jamais partagée. Les reports seront soumis sous ton compte UEX personnel.',
+    'modal.drKeySaved':'✅ Clé sauvegardée','modal.drKeyNone':'Aucune clé — envoi via compte Streamer Forge',
     'modal.pricesConfirm':'Confirme les prix réels observés en jeu',
     'modal.buyPrice':'Prix achat/SCU','modal.sellPrice':'Prix vente/SCU',
     'modal.stockRemaining':'Stock restant','modal.afterPurchase':'après ton achat',
@@ -1189,6 +1193,10 @@ const TRANSLATIONS = {
     'refresh.networkError':'⚠️ Network error: {msg}',
     'modal.title':'✅ Validate trade','modal.handlePlaceholder':'Your RSI handle (e.g. Vinyle)',
     'modal.handleHint':'Saved locally — used for report traceability.',
+    'modal.drToggle':'⚡ DataRunner — use your own UEX key',
+    'modal.drKeyPlaceholder':'UEX secret key (secret-key)',
+    'modal.drKeyHint':'Stored locally, never shared. Reports will be submitted under your personal UEX account.',
+    'modal.drKeySaved':'✅ Key saved','modal.drKeyNone':'No key — submitting via Streamer Forge account',
     'modal.pricesConfirm':'Confirm actual prices observed in game',
     'modal.buyPrice':'Buy price/SCU','modal.sellPrice':'Sell price/SCU',
     'modal.stockRemaining':'Remaining stock','modal.afterPurchase':'after your purchase',
@@ -2499,6 +2507,7 @@ function openValidateLeg(cIdx, lIdx){
     document.getElementById('vmMsg').style.color  = '';
     document.getElementById('vmSubmit').disabled  = false;
     document.getElementById('vmSubmit').textContent = T('modal.submit');
+    initModalCommon();
     document.getElementById('validateModal').style.display = 'flex';
 }
 
@@ -2523,7 +2532,19 @@ function openValidate(idx){
     document.getElementById('vmMsg').style.color   = '';
     document.getElementById('vmSubmit').disabled   = false;
     document.getElementById('vmSubmit').textContent = T('modal.submit');
+    initModalCommon();
     document.getElementById('validateModal').style.display = 'flex';
+}
+
+function initModalCommon(){
+    const savedKey = localStorage.getItem('sf_uex_key') || '';
+    const keyInput = document.getElementById('vmUexKey');
+    const status   = document.getElementById('vmDrStatus');
+    if(keyInput) keyInput.value = savedKey;
+    if(status){
+        status.style.color   = savedKey ? 'var(--green)' : 'var(--text-3)';
+        status.textContent   = savedKey ? T('modal.drKeySaved') : T('modal.drKeyNone');
+    }
 }
 
 function closeValidate(){
@@ -2545,8 +2566,10 @@ async function submitValidate(){
     if(!sellPrice || sellPrice<=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.sellPrice'); return; }
     if(isNaN(scu) || scu < 0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.scu'); return; }
 
-    // Sauvegarder le handle
+    // Sauvegarder le handle et la clé UEX si renseignée
     localStorage.setItem('sf_rsi_handle', handle);
+    const uexKey = (document.getElementById('vmUexKey')?.value.trim()) || localStorage.getItem('sf_uex_key') || '';
+    if(uexKey) localStorage.setItem('sf_uex_key', uexKey);
 
     btn.disabled = true;
     msg.style.color = 'var(--text-2)';
@@ -2577,9 +2600,12 @@ async function submitValidate(){
         };
 
         const endpoint = `${API}/data_submit`;
+        const fetchHeaders = { 'Content-Type': 'application/json' };
+        if(uexKey) fetchHeaders['x-user-key'] = uexKey;
+
         const [rBuy, rSell] = await Promise.all([
-            fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buyPayload) }),
-            fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sellPayload) })
+            fetch(endpoint, { method:'POST', headers: fetchHeaders, body: JSON.stringify(buyPayload) }),
+            fetch(endpoint, { method:'POST', headers: fetchHeaders, body: JSON.stringify(sellPayload) })
         ]);
 
         const jBuy  = await rBuy.json().catch(()=>({}));
@@ -2850,6 +2876,14 @@ if(!localStorage.getItem('sf_tuto_done')){
             <input type="text" id="vmHandle" data-i18n-placeholder="modal.handlePlaceholder" placeholder="Ton handle RSI (ex: Vinyle)" style="font-size:12px">
             <div style="font-size:10px;color:var(--text-3);margin-top:3px" data-i18n="modal.handleHint">Sauvegardé localement — utilisé pour la traçabilité des rapports.</div>
         </div>
+        <details class="modal-datarunner" id="vmDrSection">
+            <summary style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;color:var(--purple);user-select:none" data-i18n="modal.drToggle">⚡ DataRunner — utilise ta propre clé UEX</summary>
+            <div style="margin-top:8px">
+                <input type="password" id="vmUexKey" data-i18n-placeholder="modal.drKeyPlaceholder" placeholder="Clé secrète UEX (secret-key)" style="font-size:12px;width:100%">
+                <div style="font-size:10px;color:var(--text-3);margin-top:4px" data-i18n="modal.drKeyHint">Stockée localement, jamais partagée. Les reports seront soumis sous ton compte UEX personnel.</div>
+                <div id="vmDrStatus" style="font-size:10px;margin-top:4px"></div>
+            </div>
+        </details>
         <div style="font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px" data-i18n="modal.pricesConfirm">Confirme les prix réels observés en jeu</div>
         <div class="modal-grid">
             <div class="modal-field">

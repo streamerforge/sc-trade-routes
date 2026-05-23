@@ -9,7 +9,7 @@
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, x-user-key',
 };
 
 export async function onRequest(context) {
@@ -26,8 +26,12 @@ export async function onRequest(context) {
   const uexUrl = `https://api.uexcorp.uk/2.0${path}${url.search}`;
 
   // Entêtes à envoyer à UEX
+  // La clé utilisateur (x-user-key) prime sur la clé serveur SF
   const headers = { 'Content-Type': 'application/json' };
-  if (env.UEX_API_KEY) {
+  const userKey = request.headers.get('x-user-key');
+  if (userKey) {
+    headers['secret-key'] = userKey;
+  } else if (env.UEX_API_KEY) {
     headers['secret-key'] = env.UEX_API_KEY;
   }
 
