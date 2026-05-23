@@ -1229,6 +1229,7 @@ const TRANSLATIONS = {
     'state.noCircuit.title':'Aucun circuit trouvé','state.noCircuit.sub':'Essaie de réduire le profit minimum, d\'augmenter le budget ou de désactiver "stations uniquement".',
     'state.noRoute.title':'Aucune route trouvée','state.noRoute.sub':'Essaie d\'ajuster les filtres : budget, SCU, profit minimum, ou désactive "stations uniquement".',
     'state.sysMsg':'⚠️ Le système <strong>{sys}</strong> n\'a peut-être pas encore de données de prix dans UEX.<br>Essaie <strong>"Tous les systèmes"</strong> ou sélectionne <strong>Stanton</strong>.',
+    'state.sfEmpty.title':'Pas encore de données SF','state.sfEmpty.sub':'Aucun trade validé par la communauté pour l\'instant.<br>Passe en source <strong>UEX</strong> ou <strong>Croisé</strong>, fais un trade en jeu, puis clique sur 🛒 sur la route pour être le premier à contribuer !',
     'state.noClosedCircuit':'⚠ Aucun circuit fermé — chaînes libres en fallback',
     'state.circuitsClosed':'{n} fermés','state.circuitsOpen':'{n} ouverts','state.circuitsTop100':'affichage des 100 meilleurs',
     'state.top250':'Affichage des 250 meilleures routes sur {total} trouvées',
@@ -1333,6 +1334,7 @@ const TRANSLATIONS = {
     'state.noCircuit.title':'No circuit found','state.noCircuit.sub':'Try reducing the minimum profit, increasing the budget or disabling "space stations only".',
     'state.noRoute.title':'No route found','state.noRoute.sub':'Try adjusting the filters: budget, SCU, minimum profit, or disable "space stations only".',
     'state.sysMsg':'⚠️ The <strong>{sys}</strong> system may not yet have price data in UEX.<br>Try <strong>"All systems"</strong> or select <strong>Stanton</strong>.',
+    'state.sfEmpty.title':'No SF data yet','state.sfEmpty.sub':'No community-validated trades yet.<br>Switch to <strong>UEX</strong> or <strong>Cross</strong> source, run a trade in-game, then click 🛒 on the route to be the first to contribute!',
     'state.noClosedCircuit':'⚠ No closed circuit — open chains as fallback',
     'state.circuitsClosed':'{n} closed','state.circuitsOpen':'{n} open','state.circuitsTop100':'showing top 100',
     'state.top250':'Showing the 250 best routes out of {total} found',
@@ -2242,7 +2244,15 @@ function switchDataSource(src){
                    : src==='sf'   ? (S.sfOnlyPrices   || [])
                    : (S.crossPrices || S.prices);
 
-    if(!priceSet?.length){ return; } // pas encore chargé ou SF vide
+    if(!priceSet?.length){
+        if(src === 'sf'){
+            document.getElementById('tblWrap').innerHTML = `<div class="state-box">
+                <div class="state-title">🛸 ${T('state.sfEmpty.title')}</div>
+                <div class="state-sub">${T('state.sfEmpty.sub')}</div>
+            </div>`;
+        }
+        return;
+    }
     S.prices = priceSet;
     const cfg = buildCfg();
     S.routes   = calcRoutes(priceSet, S.comms, cfg);
@@ -2975,6 +2985,17 @@ function initModalCommon(){
         status.style.color   = savedKey ? 'var(--green)' : 'var(--text-3)';
         status.textContent   = savedKey ? T('modal.drKeySaved') : T('modal.drKeyNone');
     }
+}
+
+function openValidate(){
+    _vCurrent = null;
+    document.getElementById('vmRoute').innerHTML = '';
+    document.getElementById('vmBuyPrice').value  = '';
+    document.getElementById('vmSellPrice').value = '';
+    document.getElementById('vmScu').value       = '';
+    document.getElementById('vmScuBought').value = '';
+    setModalMode('buy');
+    _openModal();
 }
 
 function closeValidate(){
