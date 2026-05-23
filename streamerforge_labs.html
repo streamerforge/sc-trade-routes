@@ -658,6 +658,21 @@
         }
         .modal-msg { font-size: 11px; margin-top: 8px; text-align: center; min-height: 16px; }
 
+        /* ── RÉSUMÉ POST-SOUMISSION ── */
+        .vm-success { display:none; text-align:center; padding:8px 0 4px; }
+        .vm-success-icon { font-size:36px; margin-bottom:6px; }
+        .vm-success-title { font-size:17px; font-weight:800; color:var(--green); margin-bottom:4px; }
+        .vm-success-commodity { font-size:13px; font-weight:700; color:var(--text); margin-bottom:14px; letter-spacing:.3px; }
+        .vm-success-grid { background:rgba(16,185,129,.05); border:1px solid rgba(16,185,129,.15); border-radius:8px; padding:12px 14px; margin-bottom:12px; text-align:left; }
+        .vm-success-row { display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12px; }
+        .vm-success-lbl { color:var(--text-2); width:55px; flex-shrink:0; font-size:11px; }
+        .vm-success-term { color:var(--text); flex:1; font-size:11px; }
+        .vm-success-price { font-weight:700; color:var(--text); white-space:nowrap; }
+        .vm-success-row.profit .vm-success-price { color:var(--green); font-size:13px; }
+        .vm-success-sent { font-size:11px; color:var(--text-2); margin-bottom:14px; }
+        .vm-success-close { background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.3); color:var(--green); font-weight:700; padding:8px 28px; border-radius:6px; cursor:pointer; font-size:13px; transition:all .2s; }
+        .vm-success-close:hover { background:rgba(16,185,129,.22); }
+
         /* ── TUTORIEL ── */
         .tuto-overlay {
             position: fixed; inset: 0; z-index: 1000;
@@ -2773,9 +2788,19 @@ function _legToRoute(cIdx, lIdx){
 }
 
 function _openModal(){
-    document.getElementById('vmHandle').value    = localStorage.getItem('sf_rsi_handle') || '';
-    document.getElementById('vmMsg').textContent = '';
-    document.getElementById('vmMsg').style.color = '';
+    // Reset layout (au cas où on rouvre après un succès)
+    const grid = document.querySelector('.modal-grid');
+    if(grid) grid.style.display = '';
+    const handleEl = document.querySelector('.modal-handle');
+    if(handleEl) handleEl.style.display = '';
+    const pricesLbl = document.querySelector('[data-i18n="modal.pricesConfirm"]');
+    if(pricesLbl) pricesLbl.style.display = '';
+    document.querySelector('.modal-actions').style.display = '';
+    const msgEl = document.getElementById('vmMsg');
+    msgEl.textContent = ''; msgEl.style.color = ''; msgEl.style.display = '';
+    document.getElementById('vmSuccess').style.display = 'none';
+
+    document.getElementById('vmHandle').value = localStorage.getItem('sf_rsi_handle') || '';
     document.getElementById('validateModal').style.display = 'flex';
 }
 
@@ -2876,7 +2901,48 @@ function initModalCommon(){
 
 function closeValidate(){
     document.getElementById('validateModal').style.display = 'none';
+    document.getElementById('vmSuccess').style.display = 'none';
     _vCurrent = null;
+}
+
+function showSuccessSummary(target, buyPrice, sellPrice, scu, sellCap, r){
+    // Masquer tous les éléments du formulaire
+    const grid = document.querySelector('.modal-grid');
+    if(grid) grid.style.display = 'none';
+    const handleEl = document.querySelector('.modal-handle');
+    if(handleEl) handleEl.style.display = 'none';
+    const pricesLbl = document.querySelector('[data-i18n="modal.pricesConfirm"]');
+    if(pricesLbl) pricesLbl.style.display = 'none';
+    document.querySelector('.modal-actions').style.display = 'none';
+    const msgEl = document.getElementById('vmMsg');
+    if(msgEl) msgEl.style.display = 'none';
+    ['vmBuySaveSection','vmSendSection','vmSavedBuyInfo','vmDrSection'].forEach(id => {
+        const el = document.getElementById(id); if(el) el.style.display = 'none';
+    });
+
+    // Remplir le résumé
+    const profit    = sellPrice - buyPrice;
+    const profitPct = ((profit / buyPrice) * 100).toFixed(1);
+    const sign      = profit >= 0 ? '+' : '';
+    const isFr      = _lang !== 'en';
+    const sentMap   = {
+        sf:   '🟣 Streamer Forge ✓',
+        uex:  '🔵 UEX Corp ✓',
+        both: '🟣 Streamer Forge ✓  •  🔵 UEX Corp ✓'
+    };
+
+    document.getElementById('vmSuccessTitle').textContent     = isFr ? 'Trade validé !' : 'Trade validated!';
+    document.getElementById('vmSuccessCommodity').textContent = r.commodity;
+    document.getElementById('vmSuccessBuyTerm').textContent   = r.buyTerminal;
+    document.getElementById('vmSuccessBuyPrice').textContent  = `${buyPrice.toLocaleString()} aUEC/SCU`;
+    document.getElementById('vmSuccessSellTerm').textContent  = r.sellTerminal;
+    document.getElementById('vmSuccessSellPrice').textContent = `${sellPrice.toLocaleString()} aUEC/SCU`;
+    document.getElementById('vmSuccessProfit').textContent    = `${sign}${profit.toLocaleString()} aUEC/SCU (${sign}${profitPct}%)`;
+    document.getElementById('vmSuccessSent').textContent      = (isFr ? 'Envoyé vers : ' : 'Sent to: ') + sentMap[target];
+    document.getElementById('vmSuccess').style.display = 'block';
+
+    // Supprimer les données d'achat en attente
+    localStorage.removeItem('sf_pending_buy');
 }
 
 async function submitValidate(target = 'both'){
@@ -2952,8 +3018,7 @@ async function submitValidate(target = 'both'){
                 fetch(`${SF_API}/report`, {method:'POST',headers:sfH,body:JSON.stringify(sfPayloadSell)}),
             ]).catch(()=>{});
             if(target === 'sf'){
-                msg.style.color='var(--green)'; msg.textContent=T('modal.successSfOnly');
-                setTimeout(closeValidate,2500); return;
+                showSuccessSummary('sf', buyPrice, sellPrice, scu, sellCap, r); return;
             }
         }
 
@@ -2968,9 +3033,7 @@ async function submitValidate(target = 'both'){
         const jSell = await rSell.json().catch(()=>({}));
 
         if(rBuy.ok && rSell.ok){
-            msg.style.color = 'var(--green)';
-            msg.textContent = target === 'both' ? T('modal.successBoth') : T('modal.successUEX');
-            setTimeout(closeValidate, 2500);
+            showSuccessSummary(target, buyPrice, sellPrice, scu, sellCap, r);
         } else {
             const failResp = !rBuy.ok ? jBuy : jSell;
             const rawErr   = failResp.message || failResp.error || failResp.status || JSON.stringify(failResp).slice(0,120);
@@ -3287,6 +3350,31 @@ if(!localStorage.getItem('sf_tuto_done')){
                     <button class="btn-modal-submit btn-both" id="vmSubmitBoth" onclick="submitValidate('both')" data-i18n="modal.submitBoth">SF + UEX</button>
                 </div>
             </div>
+        </div>
+        <!-- Résumé post-soumission -->
+        <div class="vm-success" id="vmSuccess">
+            <div class="vm-success-icon">✅</div>
+            <div class="vm-success-title" id="vmSuccessTitle">Trade validé !</div>
+            <div class="vm-success-commodity" id="vmSuccessCommodity"></div>
+            <div class="vm-success-grid">
+                <div class="vm-success-row">
+                    <span class="vm-success-lbl">🛒 Achat</span>
+                    <span class="vm-success-term" id="vmSuccessBuyTerm"></span>
+                    <span class="vm-success-price" id="vmSuccessBuyPrice"></span>
+                </div>
+                <div class="vm-success-row">
+                    <span class="vm-success-lbl">💰 Vente</span>
+                    <span class="vm-success-term" id="vmSuccessSellTerm"></span>
+                    <span class="vm-success-price" id="vmSuccessSellPrice"></span>
+                </div>
+                <div class="vm-success-row profit">
+                    <span class="vm-success-lbl">📈 Profit</span>
+                    <span class="vm-success-term"></span>
+                    <span class="vm-success-price" id="vmSuccessProfit"></span>
+                </div>
+            </div>
+            <div class="vm-success-sent" id="vmSuccessSent"></div>
+            <button class="vm-success-close" onclick="closeValidate()">Fermer</button>
         </div>
     </div>
 </div>
