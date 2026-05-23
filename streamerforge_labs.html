@@ -755,6 +755,17 @@
         }
         .btn-tuto-header:hover { background: rgba(0,212,255,.1); }
 
+        /* Lang switcher */
+        .lang-switcher { display: flex; gap: 4px; }
+        .lang-btn {
+            background: none; border: 1px solid var(--border-hi);
+            color: var(--text-3); font-size: 11px; font-weight: 700;
+            padding: 4px 9px; border-radius: 4px; cursor: pointer;
+            transition: all .2s; letter-spacing: .5px;
+        }
+        .lang-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+        .lang-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,.1); }
+
         /* Scrollbar */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
@@ -791,16 +802,20 @@
         <img src="./StreamerForge.png" alt="SF" style="height:48px;width:48px;object-fit:contain;border-radius:6px;flex-shrink:0;">
         <div>
             <h1 style="font-size:16px">SC Trade Routes <span style="color:#e67e22;font-size:12px;font-weight:600">by Streamer Forge</span> <span style="background:linear-gradient(90deg,#f59e0b,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:11px;font-weight:800;letter-spacing:2px">⚗ LABS</span></h1>
-            <div class="hd-sub">Optimiseur de routes — Star Citizen &nbsp;·&nbsp; <em style="color:#8b5cf6">On ne naît pas streamer, on le devient.</em></div>
+            <div class="hd-sub"><span data-i18n="hd.sub">Optimiseur de routes — Star Citizen</span> &nbsp;·&nbsp; <em style="color:#8b5cf6" data-i18n="hd.motto">On ne naît pas streamer, on le devient.</em></div>
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:12px">
         <a href="https://discord.gg/sUc27b6E8" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.4);border-radius:6px;color:#c4b5fd;font-size:11px;font-weight:700;text-decoration:none" onmouseover="this.style.background='rgba(139,92,246,.3)'" onmouseout="this.style.background='rgba(139,92,246,.15)'">
             <svg width="16" height="12" viewBox="0 0 71 55" fill="currentColor"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.5.4a.2.2 0 0 0-.2.1 40.9 40.9 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.5 37.5 0 0 0 25.5.5a.2.2 0 0 0-.2-.1A58.4 58.4 0 0 0 10.7 4.9a.2.2 0 0 0-.1.1C1.5 18.1-.9 31 .3 43.7a.2.2 0 0 0 .1.2 58.8 58.8 0 0 0 17.7 9 .2.2 0 0 0 .3-.1 42 42 0 0 0 3.6-5.9.2.2 0 0 0-.1-.3 38.7 38.7 0 0 1-5.5-2.6.2.2 0 0 1 0-.4l1.1-.8a.2.2 0 0 1 .2 0c11.5 5.3 24 5.3 35.4 0a.2.2 0 0 1 .2 0l1.1.8a.2.2 0 0 1 0 .4 36 36 0 0 1-5.5 2.6.2.2 0 0 0-.1.3 47 47 0 0 0 3.6 5.9.2.2 0 0 0 .3.1 58.6 58.6 0 0 0 17.8-9 .2.2 0 0 0 .1-.2c1.5-15.1-2.5-28.2-10.5-39.8a.2.2 0 0 0-.1-.1zM23.7 36c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2zm23.7 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2z"/></svg>
-            Rejoindre Streamer Forge
+            <span data-i18n="nav.join">Rejoindre Streamer Forge</span>
         </a>
-        <button class="btn-tuto-header" onclick="openTuto()">❓ Guide</button>
-        <div class="api-badge"><div class="dot" id="dot"></div><span id="dotTxt">En attente</span></div>
+        <button class="btn-tuto-header" onclick="openTuto()" data-i18n="nav.guide">❓ Guide</button>
+        <div class="lang-switcher">
+            <button class="lang-btn active" data-lang="fr" onclick="setLang('fr')">FR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="api-badge"><div class="dot" id="dot"></div><span id="dotTxt" data-i18n="api.waiting">En attente</span></div>
     </div>
 </header>
 
@@ -811,26 +826,26 @@
 
         <!-- Vaisseau -->
         <div>
-            <div class="sec-title">🚀 Vaisseau</div>
+            <div class="sec-title" data-i18n="ship.title">🚀 Vaisseau</div>
 
             <div class="fg">
-                <label class="lbl">Modèle</label>
+                <label class="lbl" data-i18n="ship.model">Modèle</label>
                 <div class="sel-wrap">
                     <select id="shipSel" onchange="onShipChange()">
-                        <option value="">— Sélectionner —</option>
+                        <option value="" data-i18n="ship.select">— Sélectionner —</option>
                     </select>
                 </div>
             </div>
 
             <div class="fg">
-                <label class="lbl">Capacité de cargaison</label>
+                <label class="lbl" data-i18n="ship.capacity">Capacité de cargaison</label>
                 <div class="scu-box">
                     <span class="scu-val" id="scuVal">—</span>
                     <span class="scu-unit">SCU</span>
                 </div>
                 <div class="override-row">
                     <input type="checkbox" id="scuOvr" onchange="toggleOvr()">
-                    <label for="scuOvr">Valeur personnalisée :</label>
+                    <label for="scuOvr" data-i18n="ship.custom">Valeur personnalisée :</label>
                     <input type="number" id="scuCustom" placeholder="SCU" min="1" oninput="refreshScu()">
                 </div>
             </div>
@@ -838,10 +853,10 @@
 
         <!-- Budget -->
         <div>
-            <div class="sec-title">💰 Budget</div>
+            <div class="sec-title" data-i18n="budget.title">💰 Budget</div>
             <div class="fg">
-                <label class="lbl">Capital disponible (aUEC) — vide = illimité</label>
-                <input type="number" id="budget" placeholder="Illimité" value="1000000">
+                <label class="lbl" data-i18n="budget.label">Capital disponible (aUEC) — vide = illimité</label>
+                <input type="number" id="budget" data-i18n-placeholder="budget.unlimited" placeholder="Illimité" value="1000000">
                 <div class="shortcuts">
                     <button class="btn-xs" onclick="setBudget(100000)">100K</button>
                     <button class="btn-xs" onclick="setBudget(500000)">500K</button>
@@ -854,13 +869,13 @@
 
         <!-- Filtres -->
         <div>
-            <div class="sec-title">⚙️ Filtres</div>
+            <div class="sec-title" data-i18n="filter.title">⚙️ Filtres</div>
 
             <!-- LABS : Filtre terminal de départ -->
             <div class="fg">
-                <label class="lbl">🚀 Terminal de départ <span style="font-size:9px;color:var(--text-3)">(optionnel)</span></label>
+                <label class="lbl">🚀 <span data-i18n="filter.startTerm">Terminal de départ</span> <span style="font-size:9px;color:var(--text-3)" data-i18n="filter.optional">(optionnel)</span></label>
                 <div style="position:relative">
-                    <input type="text" id="startTermInput" placeholder="Taper pour chercher…"
+                    <input type="text" id="startTermInput" data-i18n-placeholder="filter.search" placeholder="Taper pour chercher…"
                            oninput="filterStartTermList()" autocomplete="off"
                            style="padding-right:28px">
                     <button id="startTermClear" onclick="clearStartTermInput()" title="Effacer"
@@ -870,19 +885,19 @@
             </div>
 
             <div class="fg">
-                <label class="lbl">Système stellaire</label>
+                <label class="lbl" data-i18n="filter.system">Système stellaire</label>
                 <div class="sel-wrap">
                     <select id="sysFilter">
                         <option value="Stanton" selected>Stanton</option>
                         <option value="Pyro">Pyro</option>
                         <option value="Nyx">Nyx</option>
-                        <option value="">Tous les systèmes</option>
+                        <option value="" data-i18n="filter.allSystems">Tous les systèmes</option>
                     </select>
                 </div>
             </div>
 
             <div class="tog-row">
-                <span class="tog-lbl">Stations spatiales uniquement</span>
+                <span class="tog-lbl" data-i18n="filter.spaceOnly">Stations spatiales uniquement</span>
                 <label class="toggle">
                     <input type="checkbox" id="togSpace">
                     <span class="tslider"></span>
@@ -890,7 +905,7 @@
             </div>
 
             <div class="tog-row">
-                <span class="tog-lbl">Exclure les marchandises illégales</span>
+                <span class="tog-lbl" data-i18n="filter.noIllegal">Exclure les marchandises illégales</span>
                 <label class="toggle">
                     <input type="checkbox" id="togIllegal">
                     <span class="tslider"></span>
@@ -898,7 +913,7 @@
             </div>
 
             <div class="tog-row">
-                <span class="tog-lbl" title="Limite les unités au stock achetable ET à la capacité d'absorption de la station de vente">Vérifier capacité d'absorption 🛒</span>
+                <span class="tog-lbl" data-i18n="filter.sellCap" data-i18n-title="filter.sellCapTitle" title="Limite les unités au stock achetable ET à la capacité d'absorption de la station de vente">Vérifier capacité d'absorption 🛒</span>
                 <label class="toggle">
                     <input type="checkbox" id="togSellCap" checked>
                     <span class="tslider"></span>
@@ -906,27 +921,27 @@
             </div>
 
             <div class="fg" style="margin-top:10px">
-                <label class="lbl">Remplissage minimum du vaisseau (%)</label>
+                <label class="lbl" data-i18n="filter.minFill">Remplissage minimum du vaisseau (%)</label>
                 <input type="number" id="minFill" placeholder="0" value="0" min="0" max="100">
             </div>
 
             <div class="fg">
-                <label class="lbl">Profit minimum par trajet (aUEC)</label>
+                <label class="lbl" data-i18n="filter.minProfit">Profit minimum par trajet (aUEC)</label>
                 <input type="number" id="minProfit" placeholder="0" value="0">
             </div>
 
             <div class="fg" style="margin-top:10px">
-                <label class="lbl">Étapes par circuit</label>
+                <label class="lbl" data-i18n="filter.hops">Étapes par circuit</label>
                 <select id="hopCount">
-                    <option value="3">3 trajets (3 escales)</option>
-                    <option value="4">4 trajets (4 escales)</option>
-                    <option value="5" selected>5 trajets (5 escales)</option>
-                    <option value="6">6 trajets (6 escales)</option>
+                    <option value="3" data-i18n="filter.hop3">3 trajets (3 escales)</option>
+                    <option value="4" data-i18n="filter.hop4">4 trajets (4 escales)</option>
+                    <option value="5" selected data-i18n="filter.hop5">5 trajets (5 escales)</option>
+                    <option value="6" data-i18n="filter.hop6">6 trajets (6 escales)</option>
                 </select>
             </div>
 
             <div class="tog-row" style="margin-top:8px">
-                <span class="tog-lbl" title="Ferme la boucle : le dernier trajet ramène à la station de départ. Désactive pour maximiser le profit sans contrainte de retour.">Circuit fermé 🔄 <span id="closedHint" style="font-size:9px;color:var(--text-3)">(retour à l'origine)</span></span>
+                <span class="tog-lbl" data-i18n-title="filter.closedTitle" title="Ferme la boucle : le dernier trajet ramène à la station de départ. Désactive pour maximiser le profit sans contrainte de retour."><span data-i18n="filter.closedCircuit">Circuit fermé 🔄</span> <span id="closedHint" style="font-size:9px;color:var(--text-3)" data-i18n="filter.closedHint">(retour à l'origine)</span></span>
                 <label class="toggle">
                     <input type="checkbox" id="togClosed">
                     <span class="tslider"></span>
@@ -936,24 +951,24 @@
 
         <!-- Position actuelle -->
         <div id="posSection" class="pos-section" style="display:none">
-            <div class="pos-header">📍 Départ depuis</div>
+            <div class="pos-header" data-i18n="pos.title">📍 Départ depuis</div>
             <div class="pos-badge">
                 <span class="pos-name" id="posName">—</span>
-                <button class="pos-clear" onclick="clearPosition()" title="Effacer la position">✕</button>
+                <button class="pos-clear" onclick="clearPosition()" data-i18n-title="pos.clear" title="Effacer la position">✕</button>
             </div>
-            <div class="pos-hint">Les routes partiront uniquement de ce terminal</div>
+            <div class="pos-hint" data-i18n="pos.hint">Les routes partiront uniquement de ce terminal</div>
         </div>
 
         <!-- LABS : Historique des calculs -->
         <div class="hist-section" id="histSection" style="display:none">
             <div class="hist-title" onclick="toggleHist()">
-                <span>🕘 Historique</span>
+                <span data-i18n="hist.title">🕘 Historique</span>
                 <span id="histArrow">▾</span>
             </div>
             <div id="histList"></div>
         </div>
 
-        <button class="btn-calc" id="calcBtn" onclick="calculate()">⚡ Calculer les routes</button>
+        <button class="btn-calc" id="calcBtn" onclick="calculate()" data-i18n="calc.button">⚡ Calculer les routes</button>
     </aside>
 
     <!-- ── RESULTS ── -->
@@ -961,19 +976,19 @@
 
         <!-- Stats -->
         <div class="stats-bar">
-            <div class="stat"><span class="stat-v" id="sRoutes">—</span><span class="stat-l">Routes</span></div>
+            <div class="stat"><span class="stat-v" id="sRoutes">—</span><span class="stat-l" data-i18n="stat.routes">Routes</span></div>
             <div class="vsep"></div>
-            <div class="stat"><span class="stat-v" id="sBest">—</span><span class="stat-l">Meilleur profit</span></div>
+            <div class="stat"><span class="stat-v" id="sBest">—</span><span class="stat-l" data-i18n="stat.best">Meilleur profit</span></div>
             <div class="vsep"></div>
-            <div class="stat"><span class="stat-v" id="sTerms">—</span><span class="stat-l">Terminaux</span></div>
+            <div class="stat"><span class="stat-v" id="sTerms">—</span><span class="stat-l" data-i18n="stat.terminals">Terminaux</span></div>
             <div class="vsep"></div>
-            <div class="stat"><span class="stat-v" id="sTime">—</span><span class="stat-l">Mis à jour</span></div>
+            <div class="stat"><span class="stat-v" id="sTime">—</span><span class="stat-l" data-i18n="stat.updated">Mis à jour</span></div>
             <div style="margin-left:auto; display:flex; align-items:center; gap:12px;">
                 <input type="text" id="search" placeholder="🔍  Filtrer commodité / terminal…"
-                       style="width:220px;" oninput="doFilter()">
+                       data-i18n-placeholder="results.search" style="width:220px;" oninput="doFilter()">
                 <div class="tabs">
-                    <button class="tab-btn active" id="tabSimple"  onclick="switchTab('simple')">Trajets simples</button>
-                    <button class="tab-btn"         id="tabCircuit" onclick="switchTab('circuit')">⟳ Circuits</button>
+                    <button class="tab-btn active" id="tabSimple"  onclick="switchTab('simple')" data-i18n="results.tabSimple">Trajets simples</button>
+                    <button class="tab-btn"         id="tabCircuit" onclick="switchTab('circuit')" data-i18n="results.tabCircuit">⟳ Circuits</button>
                 </div>
             </div>
         </div>
@@ -981,8 +996,8 @@
         <!-- Table -->
         <div class="tbl-wrap" id="tblWrap">
             <div class="state-box" id="emptyState">
-                <div class="state-title">Aucune route chargée</div>
-                <div class="state-sub">Sélectionne un vaisseau, configure tes filtres puis clique sur <strong>Calculer les routes</strong></div>
+                <div class="state-title" data-i18n="state.empty.title">Aucune route chargée</div>
+                <div class="state-sub" data-i18n-html="state.empty.sub">Sélectionne un vaisseau, configure tes filtres puis clique sur <strong>Calculer les routes</strong></div>
             </div>
         </div>
 
@@ -1042,6 +1057,192 @@ const S = {
     mode:'simple',
     startTerminalName: null,   // position actuelle forcée
 };
+
+// ═══════════════════════════════════════════
+//  INTERNATIONALISATION (FR / EN)
+// ═══════════════════════════════════════════
+const TRANSLATIONS = {
+  fr: {
+    'nav.guide':'❓ Guide','nav.join':'Rejoindre Streamer Forge',
+    'api.waiting':'En attente','api.ok':'UEX en ligne','api.error':'Erreur API',
+    'ship.title':'🚀 Vaisseau','ship.model':'Modèle','ship.capacity':'Capacité de cargaison',
+    'ship.custom':'Valeur personnalisée :','ship.select':'— Sélectionner —',
+    'budget.title':'💰 Budget','budget.label':'Capital disponible (aUEC) — vide = illimité','budget.unlimited':'Illimité',
+    'filter.title':'⚙️ Filtres','filter.startTerm':'Terminal de départ','filter.optional':'(optionnel)',
+    'filter.search':'Taper pour chercher…','filter.system':'Système stellaire','filter.allSystems':'Tous les systèmes',
+    'filter.spaceOnly':'Stations spatiales uniquement','filter.noIllegal':'Exclure les marchandises illégales',
+    'filter.sellCap':'Vérifier capacité d\'absorption 🛒',
+    'filter.sellCapTitle':'Limite les unités au stock achetable ET à la capacité d\'absorption de la station de vente',
+    'filter.minFill':'Remplissage minimum du vaisseau (%)','filter.minProfit':'Profit minimum par trajet (aUEC)',
+    'filter.hops':'Étapes par circuit',
+    'filter.hop3':'3 trajets (3 escales)','filter.hop4':'4 trajets (4 escales)',
+    'filter.hop5':'5 trajets (5 escales)','filter.hop6':'6 trajets (6 escales)',
+    'filter.closedCircuit':'Circuit fermé 🔄','filter.closedHint':'(retour à l\'origine)',
+    'filter.closedTitle':'Ferme la boucle : le dernier trajet ramène à la station de départ.',
+    'pos.title':'📍 Départ depuis','pos.clear':'Effacer la position',
+    'pos.hint':'Les routes partiront uniquement de ce terminal',
+    'calc.button':'⚡ Calculer les routes',
+    'results.search':'🔍  Filtrer commodité / terminal…',
+    'results.tabSimple':'Trajets simples','results.tabCircuit':'⟳ Circuits',
+    'card.setpos':'📍 Je suis ici','card.discord':'📋 Discord',
+    'card.refresh':'🔄 Actualiser le stock','card.refreshTitle':'Vérifie le stock en temps réel avant d\'y aller',
+    'card.validate':'✅ Valider ce leg','card.validateTitle':'J\'ai fait ce trajet — contribuer aux données UEX',
+    'card.validateSimple':'J\'ai fait ce trade — contribue aux données UEX',
+    'card.stockLabel':'Stock dispo','card.sellLabel':'Capacité vente',
+    'card.step':'Étape','card.return':'Retour','card.circuit':'Circuit',
+    'card.qty':'Qté','card.legProfit':'Profit leg',
+    'refresh.checking':'⏳ Vérification…',
+    'refresh.empty':'🚫 Stock vide — <strong>{commodity}</strong> épuisé à {terminal}',
+    'refresh.recalc':'📍 Recalculer le circuit depuis {pos}',
+    'refresh.insufficient':'⚠️ Stock insuffisant — {stock} SCU dispo sur {needed} nécessaires ({pct}%)',
+    'refresh.ok':'✅ Stock OK — {stock} SCU dispo',
+    'refresh.priceChanged':' &nbsp;·&nbsp; Prix actuel : <span style="color:var(--amber)">{price} aUEC/SCU</span> <span style="color:var(--text-3)">(calculé : {old})</span>',
+    'refresh.networkError':'⚠️ Erreur réseau : {msg}',
+    'modal.title':'✅ Valider ce trade','modal.handlePlaceholder':'Ton handle RSI (ex: Vinyle)',
+    'modal.handleHint':'Sauvegardé localement — utilisé pour la traçabilité des rapports.',
+    'modal.pricesConfirm':'Confirme les prix réels observés en jeu',
+    'modal.buyPrice':'Prix achat/SCU','modal.sellPrice':'Prix vente/SCU',
+    'modal.stockRemaining':'Stock restant','modal.afterPurchase':'après ton achat',
+    'modal.scuPlaceholder':'SCU restants','modal.cancel':'Annuler','modal.submit':'📤 Envoyer à UEX',
+    'modal.err.handle':'⚠️ Handle RSI requis.','modal.err.buyPrice':'⚠️ Prix d\'achat invalide.',
+    'modal.err.sellPrice':'⚠️ Prix de vente invalide.',
+    'modal.err.scu':'⚠️ Stock restant requis (0 si épuisé).',
+    'modal.success':'✅ Rapport envoyé à UEX — merci pour ta contribution !','modal.submitted':'✅ Envoyé',
+    'modal.err.evaluation':'⏳ Compte en période d\'évaluation UEX (90j) — soumets quelques rapports sur uexcorp.space pour débloquer la contribution automatique.',
+    'modal.err.screenshot':'⚠️ UEX exige une capture d\'écran — soumets manuellement sur uexcorp.space/data.',
+    'modal.err.network':'⚠️ Erreur réseau : {msg}','modal.err.uex':'⚠️ Erreur UEX : {msg}',
+    'tuto.skip':'Passer','tuto.prev':'← Retour','tuto.next':'Suivant →','tuto.go':'🚀 C\'est parti !',
+    'hist.title':'🕘 Historique','hist.tooltip':'Cliquer pour recalculer avec ces paramètres',
+    'hd.sub':'Optimiseur de routes — Star Citizen','hd.motto':'On ne naît pas streamer, on le devient.',
+    'stat.routes':'Routes','stat.best':'Meilleur profit','stat.terminals':'Terminaux','stat.updated':'Mis à jour',
+    'state.empty.title':'Aucune route chargée','state.empty.sub':'Sélectionne un vaisseau, configure tes filtres puis clique sur <strong>Calculer les routes</strong>',
+    'state.noCircuit.title':'Aucun circuit trouvé','state.noCircuit.sub':'Essaie de réduire le profit minimum, d\'augmenter le budget ou de désactiver "stations uniquement".',
+    'state.noRoute.title':'Aucune route trouvée','state.noRoute.sub':'Essaie d\'ajuster les filtres : budget, SCU, profit minimum, ou désactive "stations uniquement".',
+    'state.sysMsg':'⚠️ Le système <strong>{sys}</strong> n\'a peut-être pas encore de données de prix dans UEX.<br>Essaie <strong>"Tous les systèmes"</strong> ou sélectionne <strong>Stanton</strong>.',
+    'state.noClosedCircuit':'⚠ Aucun circuit fermé — chaînes libres en fallback',
+    'state.circuitsClosed':'{n} fermés','state.circuitsOpen':'{n} ouverts','state.circuitsTop100':'affichage des 100 meilleurs',
+    'state.top250':'Affichage des 250 meilleures routes sur {total} trouvées',
+    'state.timeDisclaimer':'⚠️ Les temps affichés sont des <strong>estimations approximatives</strong> basées sur la hiérarchie des locations Star Citizen. Ils ne tiennent pas compte de la vitesse réelle de votre vaisseau, de l\'état du serveur ou des temps de chargement effectifs.',
+    'th.commodity':'Commodité','th.buyHere':'Acheter ici','th.sellHere':'Vendre ici',
+    'th.buyPrice':'Achat/SCU','th.sellPrice':'Vente/SCU','th.profitScu':'+Profit/SCU',
+    'th.qtyScu':'Qté SCU','th.invest':'Invest.','th.totalProfit':'Profit Total','th.time':'⏱ Temps','th.timeEst':'est.',
+    'err.noShip':'⚠️ Sélectionne un vaisseau ou entre une capacité SCU personnalisée.',
+    'card.closed':'🔄 Circuit fermé','card.open':'→ Trajet ouvert',
+    'state.noData':'données non renseignées',
+    'chip.budget':'💰 Budget','chip.ship':'🚀 Vaisseau','chip.stock':'📦 Stock','chip.sell':'🛒 Vente',
+    'chip.tip.budget':'Capital disponible : {amt}','chip.tip.ship':'Capacité cargo : {scu} SCU',
+    'chip.tip.stock':'Stock achetable : {scu} SCU','chip.tip.sell':'Capacité vente : {scu} SCU',
+    'fresh.ok':'Données récentes','fresh.warn':'Données un peu anciennes','fresh.old':'Données potentiellement obsolètes — vérifier en jeu',
+    'badge.illegal':'illégal',
+    'load.commodities':'Chargement des commodités…','load.terminals':'Chargement des terminaux…',
+    'load.connect':'Connexion à UEX Corp…','load.calc':'Calcul en cours…','load.routes':'Calcul des routes optimales…',
+    'conn.ok':'UEX Corp — Connecté','footer.priceCount':'{n} entrées de prix — {c} commodités',
+    'load.prices':'Chargement des prix ({sys})…','load.pricesProg':'Chargement des prix… {done} / {total} terminaux',
+  },
+  en: {
+    'nav.guide':'❓ Guide','nav.join':'Join Streamer Forge',
+    'api.waiting':'Loading','api.ok':'UEX online','api.error':'API error',
+    'ship.title':'🚀 Ship','ship.model':'Model','ship.capacity':'Cargo capacity',
+    'ship.custom':'Custom value:','ship.select':'— Select —',
+    'budget.title':'💰 Budget','budget.label':'Available capital (aUEC) — empty = unlimited','budget.unlimited':'Unlimited',
+    'filter.title':'⚙️ Filters','filter.startTerm':'Start terminal','filter.optional':'(optional)',
+    'filter.search':'Type to search…','filter.system':'Star system','filter.allSystems':'All systems',
+    'filter.spaceOnly':'Space stations only','filter.noIllegal':'Exclude illegal goods',
+    'filter.sellCap':'Check sell absorption 🛒',
+    'filter.sellCapTitle':'Limits units to buyable stock AND sell absorption capacity of the sell station',
+    'filter.minFill':'Minimum ship fill (%)','filter.minProfit':'Minimum profit per route (aUEC)',
+    'filter.hops':'Steps per circuit',
+    'filter.hop3':'3 routes (3 stops)','filter.hop4':'4 routes (4 stops)',
+    'filter.hop5':'5 routes (5 stops)','filter.hop6':'6 routes (6 stops)',
+    'filter.closedCircuit':'Closed circuit 🔄','filter.closedHint':'(return to origin)',
+    'filter.closedTitle':'Closes the loop: the last route returns to the starting station.',
+    'pos.title':'📍 Departing from','pos.clear':'Clear position',
+    'pos.hint':'Routes will only start from this terminal',
+    'calc.button':'⚡ Calculate routes',
+    'results.search':'🔍  Filter commodity / terminal…',
+    'results.tabSimple':'Simple routes','results.tabCircuit':'⟳ Circuits',
+    'card.setpos':'📍 I\'m here','card.discord':'📋 Discord',
+    'card.refresh':'🔄 Refresh stock','card.refreshTitle':'Check stock in real-time before going',
+    'card.validate':'✅ Validate leg','card.validateTitle':'I completed this route — contribute to UEX data',
+    'card.validateSimple':'I completed this trade — contribute to UEX data',
+    'card.stockLabel':'Available stock','card.sellLabel':'Sell capacity',
+    'card.step':'Step','card.return':'Return','card.circuit':'Circuit',
+    'card.qty':'Qty','card.legProfit':'Leg profit',
+    'refresh.checking':'⏳ Checking…',
+    'refresh.empty':'🚫 Empty stock — <strong>{commodity}</strong> sold out at {terminal}',
+    'refresh.recalc':'📍 Recalculate circuit from {pos}',
+    'refresh.insufficient':'⚠️ Insufficient stock — {stock} SCU available out of {needed} needed ({pct}%)',
+    'refresh.ok':'✅ Stock OK — {stock} SCU available',
+    'refresh.priceChanged':' &nbsp;·&nbsp; Current price: <span style="color:var(--amber)">{price} aUEC/SCU</span> <span style="color:var(--text-3)">(calculated: {old})</span>',
+    'refresh.networkError':'⚠️ Network error: {msg}',
+    'modal.title':'✅ Validate trade','modal.handlePlaceholder':'Your RSI handle (e.g. Vinyle)',
+    'modal.handleHint':'Saved locally — used for report traceability.',
+    'modal.pricesConfirm':'Confirm actual prices observed in game',
+    'modal.buyPrice':'Buy price/SCU','modal.sellPrice':'Sell price/SCU',
+    'modal.stockRemaining':'Remaining stock','modal.afterPurchase':'after your purchase',
+    'modal.scuPlaceholder':'Remaining SCU','modal.cancel':'Cancel','modal.submit':'📤 Submit to UEX',
+    'modal.err.handle':'⚠️ RSI Handle required.','modal.err.buyPrice':'⚠️ Invalid buy price.',
+    'modal.err.sellPrice':'⚠️ Invalid sell price.',
+    'modal.err.scu':'⚠️ Remaining stock required (0 if sold out).',
+    'modal.success':'✅ Report sent to UEX — thank you for your contribution!','modal.submitted':'✅ Sent',
+    'modal.err.evaluation':'⏳ UEX account in evaluation period (90 days) — submit a few reports on uexcorp.space to unlock automatic contribution.',
+    'modal.err.screenshot':'⚠️ UEX requires a screenshot — submit manually on uexcorp.space/data.',
+    'modal.err.network':'⚠️ Network error: {msg}','modal.err.uex':'⚠️ UEX error: {msg}',
+    'tuto.skip':'Skip','tuto.prev':'← Back','tuto.next':'Next →','tuto.go':'🚀 Let\'s go!',
+    'hist.title':'🕘 History','hist.tooltip':'Click to recalculate with these settings',
+    'hd.sub':'Route Optimizer — Star Citizen','hd.motto':'Streamers are made, not born.',
+    'stat.routes':'Routes','stat.best':'Best profit','stat.terminals':'Terminals','stat.updated':'Updated',
+    'state.empty.title':'No routes loaded','state.empty.sub':'Select a ship, configure your filters then click <strong>Calculate routes</strong>',
+    'state.noCircuit.title':'No circuit found','state.noCircuit.sub':'Try reducing the minimum profit, increasing the budget or disabling "space stations only".',
+    'state.noRoute.title':'No route found','state.noRoute.sub':'Try adjusting the filters: budget, SCU, minimum profit, or disable "space stations only".',
+    'state.sysMsg':'⚠️ The <strong>{sys}</strong> system may not yet have price data in UEX.<br>Try <strong>"All systems"</strong> or select <strong>Stanton</strong>.',
+    'state.noClosedCircuit':'⚠ No closed circuit — open chains as fallback',
+    'state.circuitsClosed':'{n} closed','state.circuitsOpen':'{n} open','state.circuitsTop100':'showing top 100',
+    'state.top250':'Showing the 250 best routes out of {total} found',
+    'state.timeDisclaimer':'⚠️ Travel times shown are <strong>rough estimates</strong> based on Star Citizen location hierarchy. They do not account for your ship\'s actual speed, server state, or loading times.',
+    'th.commodity':'Commodity','th.buyHere':'Buy here','th.sellHere':'Sell here',
+    'th.buyPrice':'Buy/SCU','th.sellPrice':'Sell/SCU','th.profitScu':'+Profit/SCU',
+    'th.qtyScu':'Qty SCU','th.invest':'Invest.','th.totalProfit':'Total Profit','th.time':'⏱ Time','th.timeEst':'est.',
+    'err.noShip':'⚠️ Select a ship or enter a custom SCU capacity.',
+    'card.closed':'🔄 Closed circuit','card.open':'→ Open route',
+    'state.noData':'data unavailable',
+    'chip.budget':'💰 Budget','chip.ship':'🚀 Ship','chip.stock':'📦 Stock','chip.sell':'🛒 Sell',
+    'chip.tip.budget':'Available capital: {amt}','chip.tip.ship':'Cargo capacity: {scu} SCU',
+    'chip.tip.stock':'Buyable stock: {scu} SCU','chip.tip.sell':'Sell capacity: {scu} SCU',
+    'fresh.ok':'Fresh data','fresh.warn':'Slightly old data','fresh.old':'Potentially stale data — check in game',
+    'badge.illegal':'illegal',
+    'load.commodities':'Loading commodities…','load.terminals':'Loading terminals…',
+    'load.connect':'Connecting to UEX Corp…','load.calc':'Computing…','load.routes':'Calculating optimal routes…',
+    'conn.ok':'UEX Corp — Connected','footer.priceCount':'{n} price entries — {c} commodities',
+    'load.prices':'Loading prices ({sys})…','load.pricesProg':'Loading prices… {done} / {total} terminals',
+  }
+};
+
+let _lang = localStorage.getItem('sf_lang') || 'fr';
+
+function T(key, vars){
+    const str = (TRANSLATIONS[_lang]||TRANSLATIONS.fr)[key] || TRANSLATIONS.fr[key] || key;
+    if(!vars) return str;
+    return str.replace(/\{(\w+)\}/g, (_,k) => vars[k]!==undefined ? vars[k] : `{${k}}`);
+}
+
+function applyLang(){
+    document.documentElement.lang = _lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = T(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = T(el.dataset.i18nHtml); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = T(el.dataset.i18nPlaceholder); });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = T(el.dataset.i18nTitle); });
+    document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === _lang); });
+    if(typeof S !== 'undefined' && window._vRoutes?.length) renderSimpleResults(window._vRoutes);
+    if(typeof S !== 'undefined' && window._vCircuits?.length) renderMultiHop(window._vCircuits);
+    if(document.getElementById('tutoOverlay')?.style.display !== 'none') renderTutoStep();
+}
+
+function setLang(lang){
+    _lang = lang;
+    localStorage.setItem('sf_lang', lang);
+    applyLang();
+}
 
 // En local (file://) → appel direct UEX ; sur le site déployé → proxy Cloudflare
 const API = (location.protocol === 'file:' || location.hostname === 'localhost')
@@ -1128,13 +1329,13 @@ async function loadData(){
     }catch{}
 
     // 1) Commodités
-    setDot('busy','Chargement des commodités…');
+    setDot('busy',T('load.commodities'));
     const commList = await apiFetch('commodities');
     const comms={};
     commList.forEach(c=>{ comms[c.id]={name:c.name,code:c.code,illegal:c.is_illegal,kind:c.kind}; });
 
     // 2) Terminaux — collecter tous les systèmes disponibles
-    setDot('busy','Chargement des terminaux…');
+    setDot('busy',T('load.terminals'));
     const terminals = await apiFetch('terminals');
 
     // Systèmes connus (base) + détection auto depuis les terminaux
@@ -1154,12 +1355,12 @@ async function loadData(){
     const allSysNames = [...new Set([...KNOWN_SYSTEMS, ...detectedSys])];
     sysSelect.innerHTML = allSysNames
         .map(n => `<option value="${n}"${n==='Stanton'?' selected':''}>${n}</option>`)
-        .join('') + '<option value="">Tous les systèmes</option>';
+        .join('') + `<option value="">${T('filter.allSystems')}</option>`;
     if(prevSys && [...sysSelect.options].some(o => o.value === prevSys))
         sysSelect.value = prevSys;
 
     // 3) Prix — fetch tous les systèmes trouvés en parallèle
-    setDot('busy',`Chargement des prix (${[...sysMap.keys()].join(', ')})…`);
+    setDot('busy',T('load.prices',{sys:[...sysMap.keys()].join(', ')}));
     let prices = [];
     try{
         const fetches = [...sysMap.entries()].map(([name, id]) =>
@@ -1185,7 +1386,7 @@ async function loadData(){
         for(let i=0; i<cargoTerms.length; i+=BATCH){
             const batch = cargoTerms.slice(i, i+BATCH);
             const done  = Math.min(i+BATCH, total);
-            showLoad(`Chargement des prix… ${done} / ${total} terminaux`);
+            showLoad(T('load.pricesProg',{done,total}));
             setDot('busy',`Prix ${done}/${total}`);
 
             const results = await Promise.all(
@@ -1315,19 +1516,19 @@ function calcRoutes(prices, comms, cfg){
 async function calculate(){
     const scu = getScu();
     if(!scu){
-        showErr('⚠️ Sélectionne un vaisseau ou entre une capacité SCU personnalisée.');
+        showErr(T('err.noShip'));
         return;
     }
 
     const btn = document.getElementById('calcBtn');
     btn.disabled = true;
-    showLoad('Connexion à UEX Corp…');
+    showLoad(T('load.connect'));
 
     try{
         const {prices, comms} = await loadData();
 
-        setDot('busy','Calcul en cours…');
-        showLoad('Calcul des routes optimales…');
+        setDot('busy',T('load.calc'));
+        showLoad(T('load.routes'));
         await sleep(30);
 
         const cfg = {
@@ -1361,9 +1562,9 @@ async function calculate(){
         document.getElementById('sBest').textContent   = routes.length ? fmtAuec(routes[0].totalProfit) : '—';
         document.getElementById('sTerms').textContent  = terms.size;
         document.getElementById('sTime').textContent   = new Date().toLocaleTimeString('fr-FR');
-        document.getElementById('footerInfo').textContent = `${prices.length.toLocaleString()} entrées de prix — ${Object.keys(comms).length} commodités`;
+        document.getElementById('footerInfo').textContent = T('footer.priceCount',{n:prices.length.toLocaleString(),c:Object.keys(comms).length});
 
-        setDot('ok','UEX Corp — Connecté');
+        setDot('ok',T('conn.ok'));
         document.getElementById('search').value='';
         if(S.mode==='simple') renderTable(routes);
         else renderMultiHop(circuits);
@@ -1468,11 +1669,11 @@ function calcMultiHop(prices, comms, cfg){
 
         // Quelle contrainte a limité la quantité ?
         let constraint, constraintTip;
-        if     (units >= byBudget  && isFinite(byBudget))  { constraint='💰 Budget';  constraintTip=`Capital disponible : ${fmtAuec(budget)}`; }
-        else if(units >= byScu     && isFinite(byScu))     { constraint='🚀 Vaisseau'; constraintTip=`Capacité cargo : ${maxScu} SCU`; }
-        else if(units >= byStock   && isFinite(byStock))   { constraint='📦 Stock';   constraintTip=`Stock achetable : ${byStock} SCU`; }
-        else if(units >= bySellCap && isFinite(bySellCap)) { constraint='🛒 Vente';   constraintTip=`Capacité vente : ${bySellCap} SCU`; }
-        else                                                { constraint='';            constraintTip=''; }
+        if     (units >= byBudget  && isFinite(byBudget))  { constraint=T('chip.budget'); constraintTip=T('chip.tip.budget',{amt:fmtAuec(budget)}); }
+        else if(units >= byScu     && isFinite(byScu))     { constraint=T('chip.ship');   constraintTip=T('chip.tip.ship',{scu:maxScu}); }
+        else if(units >= byStock   && isFinite(byStock))   { constraint=T('chip.stock');  constraintTip=T('chip.tip.stock',{scu:byStock}); }
+        else if(units >= bySellCap && isFinite(bySellCap)) { constraint=T('chip.sell');   constraintTip=T('chip.tip.sell',{scu:bySellCap}); }
+        else                                                { constraint='';               constraintTip=''; }
 
         const c = comms[trade.cid] || {};
         const legProfit = trade.profScu * units;
@@ -1620,11 +1821,11 @@ function renderMultiHop(chains){
     if(!chains || !chains.length){
         const selSys = document.getElementById('sysFilter').value;
         const sysMsg = selSys
-            ? `<br><span style="color:var(--amber)">⚠️ Le système <strong>${selSys}</strong> n'a peut-être pas encore de données de prix dans UEX.<br>Essaie <strong>"Tous les systèmes"</strong> ou sélectionne <strong>Stanton</strong>.</span>`
+            ? `<br><span style="color:var(--amber)">${T('state.sysMsg',{sys:selSys})}</span>`
             : '';
         wrap.innerHTML=`<div class="state-box">
-            <div class="state-title">Aucun circuit trouvé</div>
-            <div class="state-sub">Essaie de réduire le profit minimum, d'augmenter le budget ou de désactiver "stations uniquement".${sysMsg}</div>
+            <div class="state-title">${T('state.noCircuit.title')}</div>
+            <div class="state-sub">${T('state.noCircuit.sub')}${sysMsg}</div>
         </div>`;
         return;
     }
@@ -1649,8 +1850,8 @@ function renderMultiHop(chains){
             : [...stNames, lastSt].join(arw);
 
         const badge = chain.closed
-            ? '<span class="mh-badge mh-badge-closed">🔄 Circuit fermé</span>'
-            : '<span class="mh-badge mh-badge-open">→ Trajet ouvert</span>';
+            ? `<span class="mh-badge mh-badge-closed">${T('card.closed')}</span>`
+            : `<span class="mh-badge mh-badge-open">${T('card.open')}</span>`;
 
         // Estimation du temps total du circuit
         const totalMin = chain.legs.reduce((acc, leg) =>
@@ -1660,34 +1861,33 @@ function renderMultiHop(chains){
 
         const legsHtml = chain.legs.map((leg, i) => {
             const ill      = leg.illegal
-                ? '<span class="badge badge-ill" style="font-size:8px;margin-left:3px">illégal</span>' : '';
+                ? `<span class="badge badge-ill" style="font-size:8px;margin-left:3px">${T('badge.illegal')}</span>` : '';
             const pCls     = leg.legProfit >= maxP*.3  ? 'pr-high'
                            : leg.legProfit >= maxP*.08 ? 'pr-med' : 'pr-low';
             const retStyle = leg.isReturn
                 ? 'background:rgba(0,255,140,.06);border-top:2px solid rgba(0,255,140,.3);' : '';
             const stepLbl  = leg.isReturn
-                ? `<div class="mh-step-n" style="color:var(--green)">↩ Retour origine</div>`
-                : `<div class="mh-step-n">Étape ${i+1}</div>`;
-            // Boutons actions par leg (refresh + validation) — pas sur le retour à vide
+                ? `<div class="mh-step-n" style="color:var(--green)">↩ ${T('card.return')}</div>`
+                : `<div class="mh-step-n">${T('card.step')} ${i+1}</div>`;
             const legActionsHtml = !leg.isReturn ? `
                 <div class="leg-actions">
                     <button class="btn-leg-refresh" id="btnRef-${cIdx}-${i}"
                             onclick="refreshLeg(${cIdx},${i})"
-                            title="Vérifie le stock en temps réel avant d'y aller">
-                        🔄 Actualiser le stock
+                            title="${T('card.refreshTitle')}">
+                        ${T('card.refresh')}
                     </button>
                     <div id="legSt-${cIdx}-${i}" class="leg-status"></div>
                     <button class="btn-validate btn-validate-leg" onclick="openValidateLeg(${cIdx},${i})"
-                            title="J'ai fait ce trajet — contribuer aux données UEX">
+                            title="${T('card.validateTitle')}">
                         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;margin-right:4px">
                             <circle cx="8" cy="8" r="7" stroke="#10b981" stroke-width="1.5"/>
                             <path d="M4.5 8.5L6.8 11L11.5 5.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>Valider ce leg
+                        </svg>${T('card.validate')}
                     </button>
                 </div>` : '';
             return `<div class="mh-leg" style="${retStyle}">
                 ${stepLbl}
-                <div class="mh-from" title="${esc(leg.fromName)}">${esc(leg.fromName)}<button class="btn-setpos" onclick="setPosition('${esc2(leg.fromName)}')" title="Recalculer depuis ce terminal">📍 Je suis ici</button></div>
+                <div class="mh-from" title="${esc(leg.fromName)}">${esc(leg.fromName)}<button class="btn-setpos" onclick="setPosition('${esc2(leg.fromName)}')" title="${T('card.setpos')}">${T('card.setpos')}</button></div>
                 <div class="mh-loc">${esc(leg.fromLoc)}</div>
                 <div class="mh-action">↓ achète</div>
                 <div class="mh-comm" title="${esc(leg.commodity)}">${esc(leg.commodity)}${ill}</div>
@@ -1696,22 +1896,20 @@ function renderMultiHop(chains){
                 </div>
                 <div class="mh-invest">💵 ${fmtAuec(leg.investment)}</div>
                 <div class="mh-action">↓ vend à</div>
-                <div class="mh-to" title="${esc(leg.toName)}">${esc(leg.toName)}<button class="btn-setpos" onclick="setPosition('${esc2(leg.toName)}')" title="Recalculer depuis ce terminal">📍 Je suis ici</button></div>
+                <div class="mh-to" title="${esc(leg.toName)}">${esc(leg.toName)}<button class="btn-setpos" onclick="setPosition('${esc2(leg.toName)}')" title="${T('card.setpos')}">${T('card.setpos')}</button></div>
                 <div class="mh-sell-p">${leg.buyPrice.toLocaleString()} → ${leg.sellPrice.toLocaleString()} aUEC/SCU ${freshBadge(leg.buyUpdated)}</div>
                 <div class="mh-profit ${pCls}">+${fmtAuec(leg.legProfit)}</div>
-                ${stockBar(leg.stockCur, leg.stockMax, '📦', 'Stock dispo')}
-                ${stockBar(leg.sellCur,  leg.sellMax,  '🛒', 'Capacité vente')}
+                ${stockBar(leg.stockCur, leg.stockMax, '📦', T('card.stockLabel'))}
+                ${stockBar(leg.sellCur,  leg.sellMax,  '🛒', T('card.sellLabel'))}
                 ${legActionsHtml}
             </div>`;
         }).join('');
 
-        const discordExport = buildDiscordExport(chain, totalMin, circuitAph);
         return `<div class="mh-card">
             <div class="mh-head">
                 <div class="mh-preview">${preview}</div>
                 ${timeBadge}
                 ${badge}
-                <button class="btn-discord" onclick="copyDiscord(this,'${esc2(discordExport)}')" title="Copier pour Discord">📋 Discord</button>
                 <span class="mh-total ${totalCls}">${fmtAuec(chain.totalProfit)}</span>
             </div>
             <div class="mh-legs" style="grid-template-columns:repeat(${chain.legs.length},minmax(160px,1fr))">
@@ -1721,19 +1919,19 @@ function renderMultiHop(chains){
     }).join('');
 
     const fallbackNote = nClosed === 0 && chains.some(c => !c.closed)
-        ? ' &nbsp;·&nbsp; <span style="color:var(--amber)">⚠ Aucun circuit fermé — chaînes libres en fallback</span>'
+        ? ` &nbsp;·&nbsp; <span style="color:var(--amber)">${T('state.noClosedCircuit')}</span>`
         : '';
     const modeNote = nClosed > 0
-        ? `<span style="color:var(--green)">${nClosed} fermés</span>`
-        : `<span style="color:var(--amber)">${chains.length} ouverts</span>`;
+        ? `<span style="color:var(--green)">${T('state.circuitsClosed',{n:nClosed})}</span>`
+        : `<span style="color:var(--amber)">${T('state.circuitsOpen',{n:chains.length})}</span>`;
 
     wrap.innerHTML=`
         <div class="circuits-count">
             ${chains.length.toLocaleString()} circuits &nbsp;·&nbsp; ${modeNote}
-            ${chains.length > 100 ? ' &nbsp;·&nbsp; affichage des 100 meilleurs' : ''}
+            ${chains.length > 100 ? ` &nbsp;·&nbsp; ${T('state.circuitsTop100')}` : ''}
             ${fallbackNote}
         </div>
-        <div class="time-disclaimer">⚠️ Les temps affichés sont des <strong>estimations approximatives</strong> basées sur la hiérarchie des locations Star Citizen. Ils ne tiennent pas compte de la vitesse réelle de votre vaisseau, de l'état du serveur ou des temps de chargement effectifs.</div>
+        <div class="time-disclaimer">${T('state.timeDisclaimer')}</div>
         <div class="mh-wrap">${cards}</div>`;
 }
 
@@ -1759,11 +1957,11 @@ function renderTable(routes){
     if(!routes.length){
         const selSys = document.getElementById('sysFilter').value;
         const sysMsg = selSys
-            ? `<br><span style="color:var(--amber)">⚠️ Le système <strong>${selSys}</strong> n'a peut-être pas encore de données de prix dans UEX.<br>Essaie <strong>"Tous les systèmes"</strong> ou sélectionne <strong>Stanton</strong>.</span>`
+            ? `<br><span style="color:var(--amber)">${T('state.sysMsg',{sys:selSys})}</span>`
             : '';
         wrap.innerHTML=`<div class="state-box">
-            <div class="state-title">Aucune route trouvée</div>
-            <div class="state-sub">Essaie d'ajuster les filtres : budget, SCU, profit minimum, ou désactive "stations uniquement".${sysMsg}</div>
+            <div class="state-title">${T('state.noRoute.title')}</div>
+            <div class="state-sub">${T('state.noRoute.sub')}${sysMsg}</div>
         </div>`;
         return;
     }
@@ -1779,7 +1977,7 @@ function renderTable(routes){
         const pct  = Math.round(r.totalProfit/maxP*100);
         const pcls = r.totalProfit>=maxP*.65?'pr-high':r.totalProfit>=maxP*.25?'pr-med':'pr-low';
         const fcls = pcls.replace('pr-','fill-');
-        const ill  = r.illegal?'<span class="badge badge-ill">illégal</span>':'';
+        const ill  = r.illegal?`<span class="badge badge-ill">${T('badge.illegal')}</span>`:'';
         const byLoc = [r.buyLoc, r.buySys].filter(Boolean).join(' — ');
         const slLoc = [r.sellLoc, r.sellSys].filter(Boolean).join(' — ');
         const tripMin  = estimateLegMin(r.buyOrbit, r.buyPlanet, r.sellOrbit, r.sellPlanet, r.units);
@@ -1787,14 +1985,14 @@ function renderTable(routes){
         return `<tr>
             <td><div class="t-name">${esc(r.commodity)}${ill}</div><div class="t-loc" style="color:var(--text-3)">${esc(r.comCode)}</div></td>
             <td>
-                <div class="t-name">${esc(r.buyTerminal)} <button class="btn-setpos" onclick="setPosition('${esc2(r.buyTerminal)}')">📍</button></div>
+                <div class="t-name">${esc(r.buyTerminal)} <button class="btn-setpos" onclick="setPosition('${esc2(r.buyTerminal)}')">${T('card.setpos')}</button></div>
                 <div class="t-loc">${esc(byLoc)} ${freshBadge(r.buyUpdated)}</div>
-                ${stockBar(r.stockCur, r.stockMax, '📦', 'Stock dispo')}
+                ${stockBar(r.stockCur, r.stockMax, '📦', T('card.stockLabel'))}
             </td>
             <td>
-                <div class="t-name">${esc(r.sellTerminal)} <button class="btn-setpos" onclick="setPosition('${esc2(r.sellTerminal)}')">📍</button></div>
+                <div class="t-name">${esc(r.sellTerminal)} <button class="btn-setpos" onclick="setPosition('${esc2(r.sellTerminal)}')">${T('card.setpos')}</button></div>
                 <div class="t-loc">${esc(slLoc)} ${freshBadge(r.sellUpdated)}</div>
-                ${stockBar(r.sellCur, r.sellMax, '🛒', 'Capacité vente')}
+                ${stockBar(r.sellCur, r.sellMax, '🛒', T('card.sellLabel'))}
             </td>
             <td style="text-align:right" class="num">${r.buyPrice.toLocaleString()}</td>
             <td style="text-align:right" class="num">${r.sellPrice.toLocaleString()}</td>
@@ -1810,7 +2008,7 @@ function renderTable(routes){
                 <div class="t-time">⏱ ~${fmtTime(tripMin)}</div>
                 <div class="t-aph">~${fmtAuec(aph)}/h</div>
             </td>
-            <td><button class="btn-validate" onclick="openValidate(${_ri})" title="J'ai fait ce trade — contribue aux données UEX">
+            <td><button class="btn-validate" onclick="openValidate(${_ri})" title="${T('card.validateSimple')}">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="8" cy="8" r="7" stroke="#10b981" stroke-width="1.5"/>
                     <path d="M4.5 8.5L6.8 11L11.5 5.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1822,24 +2020,24 @@ function renderTable(routes){
     wrap.innerHTML=`
         <table>
             <thead><tr>
-                ${th('commodity','Commodité')}
-                ${th('buyTerminal','Acheter ici')}
-                ${th('sellTerminal','Vendre ici')}
-                ${th('buyPrice','Achat/SCU',true)}
-                ${th('sellPrice','Vente/SCU',true)}
-                ${th('profScu','+Profit/SCU',true)}
-                ${th('units','Qté SCU',true)}
-                ${th('investment','Invest.',true)}
-                ${th('totalProfit','Profit Total',true)}
-                <th style="text-align:right">⏱ Temps <span class="est-tag">est.</span></th>
-                <th title="J'ai fait ce trade — contribue aux données UEX">
+                ${th('commodity',T('th.commodity'))}
+                ${th('buyTerminal',T('th.buyHere'))}
+                ${th('sellTerminal',T('th.sellHere'))}
+                ${th('buyPrice',T('th.buyPrice'),true)}
+                ${th('sellPrice',T('th.sellPrice'),true)}
+                ${th('profScu',T('th.profitScu'),true)}
+                ${th('units',T('th.qtyScu'),true)}
+                ${th('investment',T('th.invest'),true)}
+                ${th('totalProfit',T('th.totalProfit'),true)}
+                <th style="text-align:right">${T('th.time')} <span class="est-tag">${T('th.timeEst')}</span></th>
+                <th title="${T('card.validateSimple')}">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#10b981" stroke-width="1.5"/><path d="M4.5 8.5L6.8 11L11.5 5.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </th>
             </tr></thead>
             <tbody>${rows}</tbody>
         </table>
-        <div class="time-disclaimer">⚠️ Les temps affichés sont des <strong>estimations approximatives</strong> basées sur la hiérarchie des locations Star Citizen. Ils ne tiennent pas compte de la vitesse réelle de votre vaisseau, de l'état du serveur ou des temps de chargement effectifs.</div>
-        ${routes.length>250?`<div style="padding:10px 16px;color:var(--text-2);font-size:11px;text-align:center">Affichage des 250 meilleures routes sur ${routes.length.toLocaleString()} trouvées</div>`:''}
+        <div class="time-disclaimer">${T('state.timeDisclaimer')}</div>
+        ${routes.length>250?`<div style="padding:10px 16px;color:var(--text-2);font-size:11px;text-align:center">${T('state.top250',{total:routes.length.toLocaleString()})}</div>`:''}
     `;
 }
 
@@ -1976,7 +2174,7 @@ function renderHistory(){
     list.innerHTML = hist.map(e=>{
         const age  = Math.floor((Date.now()-e.ts)/60000);
         const ageStr = age<60 ? age+'min' : Math.floor(age/60)+'h'+('0'+(age%60)).slice(-2);
-        return `<div class="hist-item" onclick="restoreHistory(${e.id})" title="Cliquer pour recalculer avec ces paramètres">
+        return `<div class="hist-item" onclick="restoreHistory(${e.id})" title="${T('hist.tooltip')}">
             <span class="hist-item-profit">${fmtAuec(e.bestProfit)}</span>
             <div class="hist-item-ship">${esc(e.ship)}</div>
             <div class="hist-item-meta">${esc(e.system||'Stanton')} · il y a ${ageStr} · ${e.routes} routes</div>
@@ -2052,9 +2250,9 @@ function showErr(msg){
 function dataAge(ts){
     if(!ts) return null;
     const ageMin = Math.floor((Date.now()/1000 - ts) / 60);
-    if(ageMin < 60)   return { label: ageMin+'min',          cls:'fresh-ok',  tip:'Données récentes' };
-    if(ageMin < 180)  return { label: Math.floor(ageMin/60)+'h'+('0'+(ageMin%60)).slice(-2), cls:'fresh-warn', tip:'Données un peu anciennes' };
-    return { label: Math.floor(ageMin/60)+'h'+('0'+(ageMin%60)).slice(-2), cls:'fresh-old',  tip:'Données potentiellement obsolètes — vérifier en jeu' };
+    if(ageMin < 60)   return { label: ageMin+'min',          cls:'fresh-ok',  tip:T('fresh.ok') };
+    if(ageMin < 180)  return { label: Math.floor(ageMin/60)+'h'+('0'+(ageMin%60)).slice(-2), cls:'fresh-warn', tip:T('fresh.warn') };
+    return { label: Math.floor(ageMin/60)+'h'+('0'+(ageMin%60)).slice(-2), cls:'fresh-old',  tip:T('fresh.old') };
 }
 
 function freshBadge(ts){
@@ -2118,7 +2316,7 @@ function stockBar(cur, max, icon, label){
         if(cur > 0)
             return `<div class="sbar-wrap"><span class="sbar-lbl">${icon} ${cur.toLocaleString()} SCU</span></div>`;
         // Aucune donnée disponible → indiquer clairement
-        return `<div class="sbar-wrap"><span class="sbar-lbl sbar-unknown">${icon} <span style="font-style:italic;color:var(--text-3)">données non renseignées</span></span></div>`;
+        return `<div class="sbar-wrap"><span class="sbar-lbl sbar-unknown">${icon} <span style="font-style:italic;color:var(--text-3)">${T('state.noData')}</span></span></div>`;
     }
     const pct = Math.min(100, Math.round(cur/max*100));
     const col = pct>=70 ? 'var(--green)' : pct>=30 ? 'var(--amber)' : 'var(--red)';
@@ -2139,6 +2337,9 @@ document.addEventListener('click', e=>{
 // Charger l'historique au démarrage
 renderHistory();
 
+// Appliquer la langue sauvegardée au chargement
+applyLang();
+
 // ═══════════════════════════════════════════
 //  LABS : ACTUALISATION STOCK EN TEMPS RÉEL
 // ═══════════════════════════════════════════
@@ -2151,7 +2352,7 @@ async function refreshLeg(cIdx, lIdx){
     if(!leg || leg.isReturn) return;
 
     // UI : chargement
-    if(btnEl){ btnEl.disabled = true; btnEl.textContent = '⏳ Vérification…'; }
+    if(btnEl){ btnEl.disabled = true; btnEl.textContent = T('refresh.checking'); }
     statusEl.innerHTML = '';
 
     try{
@@ -2172,40 +2373,36 @@ async function refreshLeg(cIdx, lIdx){
         const currentPos = S.startTerminalName || chain.legs[0].fromName;
 
         if(!p || freshStock === 0){
-            // Stock vide
             statusEl.innerHTML = `
                 <div style="color:var(--red);font-weight:600;margin-bottom:3px">
-                    🚫 Stock vide — <strong>${esc(leg.commodity)}</strong> épuisé à ${esc(leg.fromName)}
+                    ${T('refresh.empty',{commodity:esc(leg.commodity),terminal:esc(leg.fromName)})}
                 </div>
                 <button class="btn-recalc-here" onclick="setPosition('${esc2(currentPos)}')">
-                    📍 Recalculer le circuit depuis ${esc(currentPos)}
+                    ${T('refresh.recalc',{pos:esc(currentPos)})}
                 </button>`;
         } else if(freshStock < needed){
-            // Stock insuffisant
             const pct = Math.round(freshStock / needed * 100);
             statusEl.innerHTML = `
                 <div style="color:var(--amber);font-weight:600;margin-bottom:3px">
-                    ⚠️ Stock insuffisant — ${freshStock.toLocaleString()} SCU dispo
-                    sur ${needed.toLocaleString()} nécessaires (${pct}%)
+                    ${T('refresh.insufficient',{stock:freshStock.toLocaleString(),needed:needed.toLocaleString(),pct})}
                 </div>
                 <button class="btn-recalc-here" onclick="setPosition('${esc2(currentPos)}')">
-                    📍 Recalculer le circuit depuis ${esc(currentPos)}
+                    ${T('refresh.recalc',{pos:esc(currentPos)})}
                 </button>`;
         } else {
-            // Stock OK — signaler si le prix a changé
             const priceChanged = freshPrice && Math.abs(freshPrice - leg.buyPrice) > 1;
             const priceNote    = priceChanged
-                ? ` &nbsp;·&nbsp; Prix actuel : <span style="color:var(--amber)">${freshPrice.toLocaleString()} aUEC/SCU</span> <span style="color:var(--text-3)">(calculé : ${leg.buyPrice.toLocaleString()})</span>`
+                ? T('refresh.priceChanged',{price:freshPrice.toLocaleString(),old:leg.buyPrice.toLocaleString()})
                 : '';
             statusEl.innerHTML = `
                 <span style="color:var(--green);font-weight:600">
-                    ✅ Stock OK — ${freshStock.toLocaleString()} SCU dispo${priceNote}
+                    ${T('refresh.ok',{stock:freshStock.toLocaleString()})}${priceNote}
                 </span>`;
         }
     }catch(e){
-        statusEl.innerHTML = `<span style="color:var(--red)">⚠️ Erreur réseau : ${e.message}</span>`;
+        statusEl.innerHTML = `<span style="color:var(--red)">${T('refresh.networkError',{msg:e.message})}</span>`;
     }finally{
-        if(btnEl){ btnEl.disabled = false; btnEl.textContent = '🔄 Actualiser le stock'; }
+        if(btnEl){ btnEl.disabled = false; btnEl.textContent = T('card.refresh'); }
     }
 }
 
@@ -2234,7 +2431,7 @@ function openValidateLeg(cIdx, lIdx){
         units:        leg.units,
         totalProfit:  leg.legProfit,
         _isLeg:       true,
-        _legLabel:    `Circuit — Étape ${lIdx+1}`
+        _legLabel:    `${T('card.circuit')} — ${T('card.step')} ${lIdx+1}`
     };
 
     // Pré-remplir la modal
@@ -2251,7 +2448,7 @@ function openValidateLeg(cIdx, lIdx){
     document.getElementById('vmMsg').textContent  = '';
     document.getElementById('vmMsg').style.color  = '';
     document.getElementById('vmSubmit').disabled  = false;
-    document.getElementById('vmSubmit').textContent = '📤 Envoyer à UEX';
+    document.getElementById('vmSubmit').textContent = T('modal.submit');
     document.getElementById('validateModal').style.display = 'flex';
 }
 
@@ -2275,7 +2472,7 @@ function openValidate(idx){
     document.getElementById('vmMsg').textContent   = '';
     document.getElementById('vmMsg').style.color   = '';
     document.getElementById('vmSubmit').disabled   = false;
-    document.getElementById('vmSubmit').textContent = '📤 Envoyer à UEX';
+    document.getElementById('vmSubmit').textContent = T('modal.submit');
     document.getElementById('validateModal').style.display = 'flex';
 }
 
@@ -2293,10 +2490,10 @@ async function submitValidate(){
     const msg      = document.getElementById('vmMsg');
     const btn      = document.getElementById('vmSubmit');
 
-    if(!handle)              { msg.style.color='var(--red)'; msg.textContent='⚠️ Handle RSI requis.'; return; }
-    if(!buyPrice  || buyPrice <=0){ msg.style.color='var(--red)'; msg.textContent='⚠️ Prix d\'achat invalide.'; return; }
-    if(!sellPrice || sellPrice<=0){ msg.style.color='var(--red)'; msg.textContent='⚠️ Prix de vente invalide.'; return; }
-    if(isNaN(scu) || scu < 0){ msg.style.color='var(--red)'; msg.textContent='⚠️ Stock restant requis (0 si épuisé).'; return; }
+    if(!handle)              { msg.style.color='var(--red)'; msg.textContent=T('modal.err.handle'); return; }
+    if(!buyPrice  || buyPrice <=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.buyPrice'); return; }
+    if(!sellPrice || sellPrice<=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.sellPrice'); return; }
+    if(isNaN(scu) || scu < 0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.scu'); return; }
 
     // Sauvegarder le handle
     localStorage.setItem('sf_rsi_handle', handle);
@@ -2340,28 +2537,26 @@ async function submitValidate(){
 
         if(rBuy.ok && rSell.ok){
             msg.style.color = 'var(--green)';
-            msg.textContent = '✅ Rapport envoyé à UEX — merci pour ta contribution !';
-            btn.textContent = '✅ Envoyé';
+            msg.textContent = T('modal.success');
+            btn.textContent = T('modal.submitted');
             setTimeout(closeValidate, 2500);
         } else {
-            // Afficher la réponse brute pour debug — UEX peut renvoyer des messages utiles
             const failResp = !rBuy.ok ? jBuy : jSell;
             const rawErr   = failResp.message || failResp.error || failResp.status || JSON.stringify(failResp).slice(0,120);
             const httpErr  = `HTTP ${rBuy.ok ? rSell.status : rBuy.status}`;
-            // Message lisible selon le type d'erreur UEX
             const isNotAllowed = failResp.status === 'not_allowed';
             const needsScreenshot = rawErr && rawErr.toLowerCase().includes('screenshot');
             msg.style.color = 'var(--red)';
             msg.textContent = isNotAllowed
-                ? '⏳ Compte en période d\'évaluation UEX (90j) — soumets quelques rapports sur uexcorp.space pour débloquer la contribution automatique.'
+                ? T('modal.err.evaluation')
                 : needsScreenshot
-                    ? '⚠️ UEX exige une capture d\'écran — soumets manuellement sur uexcorp.space/data.'
-                    : `⚠️ Erreur UEX : ${rawErr || httpErr}`;
+                    ? T('modal.err.screenshot')
+                    : T('modal.err.uex',{msg: rawErr || httpErr});
             btn.disabled = false;
         }
     }catch(e){
         msg.style.color = 'var(--red)';
-        msg.textContent = `⚠️ Erreur réseau : ${e.message}`;
+        msg.textContent = T('modal.err.network',{msg:e.message});
         btn.disabled = false;
     }
 }
@@ -2370,7 +2565,7 @@ async function submitValidate(){
 // ═══════════════════════════════════════════
 //  TUTORIEL ONBOARDING
 // ═══════════════════════════════════════════
-const TUTO_STEPS = [
+const TUTO_STEPS_FR = [
   {
     icon: '🚀',
     label: 'Étape 1 sur 6',
@@ -2443,6 +2638,75 @@ Le bouton <strong>❓ Guide</strong> dans le header te ramène ici à tout momen
   }
 ];
 
+const TUTO_STEPS_EN = [
+  {
+    icon: '🚀', label: 'Step 1 of 6',
+    title: 'Welcome to SC Trade Routes',
+    desc: `This tool calculates the <strong>best trading routes</strong> in Star Citizen in real-time, powered by community data from <span class="hl-cyan">UEX Corp</span>.<br><br>
+In a few clicks, you'll know <strong>what to buy, where, and where to sell</strong> to maximize your profit per hour of gameplay.<br><br>
+This guide shows you how to use the tool <strong>in the right order</strong> to get the most out of it.`,
+    tip: '💡 Data comes from players themselves. The more you validate your trades, the more accurate the data is for everyone.'
+  },
+  {
+    icon: '⚙️', label: 'Step 2 of 6',
+    title: 'Set up your ship and budget',
+    desc: `Start by filling in two key pieces of information in the left panel:<br><br>
+<strong>🚀 Ship</strong> — Select your model from the list. Cargo capacity fills in automatically. If your ship isn't listed, check <em>"Custom value"</em> and enter your SCU manually.<br><br>
+<strong>💰 Budget</strong> — Enter the capital you want to invest (in aUEC). Leave empty for unlimited.`,
+    tip: '⚠️ These two values directly determine the quantities suggested. A tight budget or small cargo = routes adapted to your actual situation.',
+    tipColor: 'amber'
+  },
+  {
+    icon: '🔍', label: 'Step 3 of 6',
+    title: 'Calculate your routes',
+    desc: `Click <span class="hl-cyan">⚡ Calculate routes</span> to start the analysis.<br><br>
+You have two view modes:<br><br>
+<strong>Simple routes</strong> — A direct trip: buy here, sell there. Ideal to start or test a commodity.<br><br>
+<strong>⟳ Circuits</strong> — Multiple chained steps to maximize profit on a single cargo run. The algorithm picks the best combinations to fill your ship.`,
+    tip: '💡 The first time, loading takes a few seconds. Then data is cached for 3 minutes for instant recalculations.'
+  },
+  {
+    icon: '📊', label: 'Step 4 of 6',
+    title: 'Read the results and head in-game',
+    desc: `Each route shows:<br><br>
+<strong>📦 Stock</strong> — Available to buy. The bar shows the terminal fill level.<br>
+<strong>🛒 Sell capacity</strong> — What the station can absorb. The tool only suggests what you can sell in full.<br>
+<strong>⏱ Estimated time · aUEC/h</strong> — To compare routes equally.<br><br>
+On <strong>circuits</strong>, click <span class="hl-cyan">🔄 Refresh stock</span> on each step before going — if stock is empty, the tool offers to <strong>recalculate from your current position</strong>.`,
+    tip: '💡 The 💰 Budget / 📦 Stock / 🛒 Sell badges indicate what limited the recommended quantity.',
+    tipColor: 'cyan'
+  },
+  {
+    icon: '✅', label: 'Step 5 of 6 — MOST IMPORTANT',
+    title: 'Validate your trade after each run',
+    desc: `Once the trade is done in-game, come back to the tool and click the <span class="hl-green">✅</span> button on the route or step you just completed.<br><br>
+The form asks for:<br>
+<strong>• RSI Handle</strong> — Your Star Citizen username (saved for next time)<br>
+<strong>• Actual buy price</strong> — What you paid in-game<br>
+<strong>• Actual sell price</strong> — What you received<br>
+<strong>• Available stock</strong> — What you saw at the buy terminal<br><br>
+This data is sent to <span class="hl-cyan">UEX Corp</span> and improves calculations for <strong>the entire Streamer Forge community</strong>.`,
+    tip: '🌟 The more players validate, the more reliable the data and the better the routes. You\'re what keeps the tool alive.',
+    tipColor: 'green'
+  },
+  {
+    icon: '🎯', label: 'Step 6 of 6',
+    title: 'You\'re ready!',
+    desc: `Here\'s the ideal workflow to follow each session:<br><br>
+<span class="hl-cyan">1.</span> Set up ship + budget<br>
+<span class="hl-cyan">2.</span> Calculate routes or circuits<br>
+<span class="hl-cyan">3.</span> On a circuit: <strong>refresh stock</strong> on the next step before leaving<br>
+<span class="hl-cyan">4.</span> Do the trade in-game<br>
+<span class="hl-cyan">5.</span> <span class="hl-green">Validate the run</span> — real prices + observed stock<br>
+<span class="hl-cyan">6.</span> Repeat for each step<br><br>
+The <strong>❓ Guide</strong> button in the header brings you back here anytime.`,
+    tip: '🙏 Thank you for being part of the Streamer Forge community. Every validation counts!',
+    tipColor: 'green'
+  }
+];
+
+function getTutoSteps(){ return _lang === 'en' ? TUTO_STEPS_EN : TUTO_STEPS_FR; }
+
 let _tutoIdx = 0;
 
 function openTuto(startIdx = 0){
@@ -2459,28 +2723,28 @@ function closeTuto(){
 function tutoStep(dir){
     const next = _tutoIdx + dir;
     if(next < 0) return;
-    if(next >= TUTO_STEPS.length){ closeTuto(); return; }
+    if(next >= getTutoSteps().length){ closeTuto(); return; }
     _tutoIdx = next;
     renderTutoStep();
 }
 
 function renderTutoStep(){
-    const s   = TUTO_STEPS[_tutoIdx];
-    const tot = TUTO_STEPS.length;
+    const s   = getTutoSteps()[_tutoIdx];
+    const tot = getTutoSteps().length;
     const pct = Math.round((_tutoIdx + 1) / tot * 100);
 
     // Progress bar
     document.getElementById('tutoBar').style.width = pct + '%';
 
     // Dots
-    document.getElementById('tutoDots').innerHTML = TUTO_STEPS.map((_,i) =>
+    document.getElementById('tutoDots').innerHTML = getTutoSteps().map((_,i) =>
         `<div class="tuto-dot ${i===_tutoIdx?'active':i<_tutoIdx?'done':''}" onclick="jumpTuto(${i})"></div>`
     ).join('');
 
     // Boutons nav
     document.getElementById('tutoPrev').style.visibility = _tutoIdx === 0 ? 'hidden' : 'visible';
     const nextBtn = document.getElementById('tutoNext');
-    nextBtn.textContent = _tutoIdx === tot-1 ? '🚀 C\'est parti !' : 'Suivant →';
+    nextBtn.textContent = _tutoIdx === tot-1 ? T('tuto.go') : T('tuto.next');
 
     // Contenu
     const tipCls = s.tipColor === 'green' ? 'green' : s.tipColor === 'amber' ? 'amber' : '';
@@ -2512,9 +2776,9 @@ if(!localStorage.getItem('sf_tuto_done')){
         <div class="tuto-footer">
             <div class="tuto-dots" id="tutoDots"></div>
             <div class="tuto-nav">
-                <button class="btn-tuto-skip" onclick="closeTuto()">Passer</button>
-                <button class="btn-tuto-prev" id="tutoPrev" onclick="tutoStep(-1)">← Retour</button>
-                <button class="btn-tuto-next" id="tutoNext" onclick="tutoStep(1)">Suivant →</button>
+                <button class="btn-tuto-skip" onclick="closeTuto()" data-i18n="tuto.skip">Passer</button>
+                <button class="btn-tuto-prev" id="tutoPrev" onclick="tutoStep(-1)" data-i18n="tuto.prev">← Retour</button>
+                <button class="btn-tuto-next" id="tutoNext" onclick="tutoStep(1)" data-i18n="tuto.next">Suivant →</button>
             </div>
         </div>
     </div>
@@ -2523,32 +2787,32 @@ if(!localStorage.getItem('sf_tuto_done')){
 <!-- ── MODAL VALIDATION TRADE ── -->
 <div class="modal-overlay" id="validateModal" style="display:none" onclick="if(event.target===this)closeValidate()">
     <div class="modal-box">
-        <div class="modal-title">✅ Valider ce trade</div>
+        <div class="modal-title" data-i18n="modal.title">✅ Valider ce trade</div>
         <div class="modal-route" id="vmRoute"></div>
         <div class="modal-handle">
             <label class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.8px">Handle RSI <span style="color:var(--red)">*</span></label>
-            <input type="text" id="vmHandle" placeholder="Ton handle RSI (ex: Vinyle)" style="font-size:12px">
-            <div style="font-size:10px;color:var(--text-3);margin-top:3px">Sauvegardé localement — utilisé pour la traçabilité des rapports.</div>
+            <input type="text" id="vmHandle" data-i18n-placeholder="modal.handlePlaceholder" placeholder="Ton handle RSI (ex: Vinyle)" style="font-size:12px">
+            <div style="font-size:10px;color:var(--text-3);margin-top:3px" data-i18n="modal.handleHint">Sauvegardé localement — utilisé pour la traçabilité des rapports.</div>
         </div>
-        <div style="font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Confirme les prix réels observés en jeu</div>
+        <div style="font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px" data-i18n="modal.pricesConfirm">Confirme les prix réels observés en jeu</div>
         <div class="modal-grid">
             <div class="modal-field">
-                <label>Prix achat/SCU</label>
+                <label data-i18n="modal.buyPrice">Prix achat/SCU</label>
                 <input type="number" id="vmBuyPrice" min="0" step="0.01" style="font-size:12px">
             </div>
             <div class="modal-field">
-                <label>Prix vente/SCU</label>
+                <label data-i18n="modal.sellPrice">Prix vente/SCU</label>
                 <input type="number" id="vmSellPrice" min="0" step="0.01" style="font-size:12px">
             </div>
             <div class="modal-field">
-                <label>Stock restant <span style="color:var(--red)">*</span><br><span style="font-size:9px;opacity:.7;text-transform:none;letter-spacing:0">après ton achat</span></label>
-                <input type="number" id="vmScu" min="0" step="1" placeholder="SCU restants" style="font-size:12px">
+                <label><span data-i18n="modal.stockRemaining">Stock restant</span> <span style="color:var(--red)">*</span><br><span style="font-size:9px;opacity:.7;text-transform:none;letter-spacing:0" data-i18n="modal.afterPurchase">après ton achat</span></label>
+                <input type="number" id="vmScu" min="0" step="1" data-i18n-placeholder="modal.scuPlaceholder" placeholder="SCU restants" style="font-size:12px">
             </div>
         </div>
         <div class="modal-msg" id="vmMsg"></div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeValidate()">Annuler</button>
-            <button class="btn-modal-submit" id="vmSubmit" onclick="submitValidate()">📤 Envoyer à UEX</button>
+            <button class="btn-modal-cancel" onclick="closeValidate()" data-i18n="modal.cancel">Annuler</button>
+            <button class="btn-modal-submit" id="vmSubmit" onclick="submitValidate()" data-i18n="modal.submit">📤 Envoyer à UEX</button>
         </div>
     </div>
 </div>
