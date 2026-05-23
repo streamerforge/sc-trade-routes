@@ -1116,6 +1116,7 @@ const TRANSLATIONS = {
     'modal.buyPrice':'Prix achat/SCU','modal.sellPrice':'Prix vente/SCU',
     'modal.stockRemaining':'Stock restant','modal.afterPurchase':'après ton achat',
     'modal.scuPlaceholder':'SCU restants','modal.cancel':'Annuler','modal.submit':'📤 Envoyer à UEX',
+    'modal.err.uexKey':'⚠️ Clé UEX requise — ouvre la section DataRunner et entre ta clé secrète.',
     'modal.err.handle':'⚠️ Handle RSI requis.','modal.err.buyPrice':'⚠️ Prix d\'achat invalide.',
     'modal.err.sellPrice':'⚠️ Prix de vente invalide.',
     'modal.err.scu':'⚠️ Stock restant requis (0 si épuisé).',
@@ -1201,6 +1202,7 @@ const TRANSLATIONS = {
     'modal.buyPrice':'Buy price/SCU','modal.sellPrice':'Sell price/SCU',
     'modal.stockRemaining':'Remaining stock','modal.afterPurchase':'after your purchase',
     'modal.scuPlaceholder':'Remaining SCU','modal.cancel':'Cancel','modal.submit':'📤 Submit to UEX',
+    'modal.err.uexKey':'⚠️ UEX key required — open the DataRunner section and enter your secret key.',
     'modal.err.handle':'⚠️ RSI Handle required.','modal.err.buyPrice':'⚠️ Invalid buy price.',
     'modal.err.sellPrice':'⚠️ Invalid sell price.',
     'modal.err.scu':'⚠️ Remaining stock required (0 if sold out).',
@@ -2561,14 +2563,16 @@ async function submitValidate(){
     const msg      = document.getElementById('vmMsg');
     const btn      = document.getElementById('vmSubmit');
 
-    if(!handle)              { msg.style.color='var(--red)'; msg.textContent=T('modal.err.handle'); return; }
+    const uexKey = (document.getElementById('vmUexKey')?.value.trim()) || localStorage.getItem('sf_uex_key') || '';
+
+    if(!uexKey)               { msg.style.color='var(--red)'; msg.textContent=T('modal.err.uexKey'); document.getElementById('vmDrSection').open=true; return; }
+    if(!handle)               { msg.style.color='var(--red)'; msg.textContent=T('modal.err.handle'); return; }
     if(!buyPrice  || buyPrice <=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.buyPrice'); return; }
     if(!sellPrice || sellPrice<=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.sellPrice'); return; }
     if(isNaN(scu) || scu < 0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.scu'); return; }
 
-    // Sauvegarder le handle et la clé UEX si renseignée
+    // Sauvegarder handle et clé UEX
     localStorage.setItem('sf_rsi_handle', handle);
-    const uexKey = (document.getElementById('vmUexKey')?.value.trim()) || localStorage.getItem('sf_uex_key') || '';
     if(uexKey) localStorage.setItem('sf_uex_key', uexKey);
 
     btn.disabled = true;
@@ -2878,7 +2882,7 @@ if(!localStorage.getItem('sf_tuto_done')){
             <input type="text" id="vmHandle" data-i18n-placeholder="modal.handlePlaceholder" placeholder="Ton handle RSI (ex: Vinyle)" style="font-size:12px">
             <div style="font-size:10px;color:var(--text-3);margin-top:3px" data-i18n="modal.handleHint">Sauvegardé localement — utilisé pour la traçabilité des rapports.</div>
         </div>
-        <details class="modal-datarunner" id="vmDrSection">
+        <details class="modal-datarunner" id="vmDrSection" open>
             <summary style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;color:var(--purple);user-select:none" data-i18n="modal.drToggle">⚡ DataRunner — utilise ta propre clé UEX</summary>
             <div style="margin-top:8px">
                 <input type="password" id="vmUexKey" data-i18n-placeholder="modal.drKeyPlaceholder" placeholder="Clé secrète UEX (secret-key)" style="font-size:12px;width:100%">
