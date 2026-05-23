@@ -1120,7 +1120,8 @@ const TRANSLATIONS = {
     'modal.err.handle':'⚠️ Handle RSI requis.','modal.err.buyPrice':'⚠️ Prix d\'achat invalide.',
     'modal.err.sellPrice':'⚠️ Prix de vente invalide.',
     'modal.err.scu':'⚠️ Stock restant requis (0 si épuisé).',
-    'modal.success':'✅ Rapport envoyé à UEX — merci pour ta contribution !','modal.submitted':'✅ Envoyé',
+    'modal.success':'✅ Rapport envoyé à UEX + base SF — merci !','modal.submitted':'✅ Envoyé',
+    'modal.successSfOnly':'✅ Sauvegardé dans la base Streamer Forge ! Ajoute ta clé UEX pour contribuer aussi à UEX.',
     'modal.err.evaluation':'⏳ Compte en période d\'évaluation UEX (90j) — soumets quelques rapports sur uexcorp.space pour débloquer la contribution automatique.',
     'modal.err.screenshot':'⚠️ UEX exige une capture d\'écran — soumets manuellement sur uexcorp.space/data.',
     'modal.err.network':'⚠️ Erreur réseau : {msg}','modal.err.uex':'⚠️ Erreur UEX : {msg}',
@@ -1206,7 +1207,8 @@ const TRANSLATIONS = {
     'modal.err.handle':'⚠️ RSI Handle required.','modal.err.buyPrice':'⚠️ Invalid buy price.',
     'modal.err.sellPrice':'⚠️ Invalid sell price.',
     'modal.err.scu':'⚠️ Remaining stock required (0 if sold out).',
-    'modal.success':'✅ Report sent to UEX — thank you for your contribution!','modal.submitted':'✅ Sent',
+    'modal.success':'✅ Report sent to UEX + SF database — thank you!','modal.submitted':'✅ Sent',
+    'modal.successSfOnly':'✅ Saved to Streamer Forge database! Add your UEX key to also contribute to UEX.',
     'modal.err.evaluation':'⏳ UEX account in evaluation period (90 days) — submit a few reports on uexcorp.space to unlock automatic contribution.',
     'modal.err.screenshot':'⚠️ UEX requires a screenshot — submit manually on uexcorp.space/data.',
     'modal.err.network':'⚠️ Network error: {msg}','modal.err.uex':'⚠️ UEX error: {msg}',
@@ -2653,7 +2655,6 @@ async function submitValidate(){
 
     const uexKey = (document.getElementById('vmUexKey')?.value.trim()) || localStorage.getItem('sf_uex_key') || '';
 
-    if(!uexKey)               { msg.style.color='var(--red)'; msg.textContent=T('modal.err.uexKey'); document.getElementById('vmDrSection').open=true; return; }
     if(!handle)               { msg.style.color='var(--red)'; msg.textContent=T('modal.err.handle'); return; }
     if(!buyPrice  || buyPrice <=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.buyPrice'); return; }
     if(!sellPrice || sellPrice<=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.sellPrice'); return; }
@@ -2708,11 +2709,21 @@ async function submitValidate(){
             commodity_code: r.comCode || '',
             price_sell: sellPrice, rsi_handle: handle
         };
+        // ── Envoi SF D1 (toujours, pas besoin de clé UEX) ──────────────
         if(location.protocol !== 'file:'){
             Promise.all([
                 fetch(`${SF_API}/report`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sfPayloadBuy)  }),
                 fetch(`${SF_API}/report`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sfPayloadSell) }),
             ]).catch(()=>{});
+        }
+
+        // ── Envoi UEX (seulement si clé perso présente) ─────────────
+        if(!uexKey){
+            msg.style.color = 'var(--green)';
+            msg.textContent = T('modal.successSfOnly');
+            btn.textContent = T('modal.submitted');
+            setTimeout(closeValidate, 2500);
+            return;
         }
 
         const [rBuy, rSell] = await Promise.all([
