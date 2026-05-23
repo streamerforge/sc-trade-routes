@@ -1274,6 +1274,7 @@ function setLang(lang){
 const API = (location.protocol === 'file:' || location.hostname === 'localhost')
     ? 'https://api.uexcorp.uk/2.0'
     : '/api/uex';
+const SF_API = '/api/sf';
 const CACHE_MS = 3 * 60 * 1000;
 
 // ═══════════════════════════════════════════
@@ -1425,7 +1426,87 @@ async function loadData(){
     }
 
     try{ localStorage.setItem(ckey, JSON.stringify({prices,comms,ts:Date.now()})); }catch{}
+
+    // ── Merge avec les prix Streamer Forge (D1) ──────────────────────
+    prices = await mergeSFPrices(prices);
+
     return {prices,comms};
+}
+
+/**
+ * Charge les prix SF depuis D1 et les merge avec les prix UEX.
+ * Règle : pour chaque paire (terminal, commodité), on prend le plus récent
+ * entre SF et UEX, à condition que le prix SF soit cohérent (±30% de l'UEX).
+ */
+async function mergeSFPrices(uexPrices){
+    // Pas disponible en local (file://)
+    if(location.protocol === 'file:') return uexPrices;
+
+    let sfData = [];
+    try{
+        const r = await fetch(`${SF_API}/prices`);
+        if(r.ok){
+            const j = await r.json();
+            sfData = j.data || [];
+        }
+    }catch{ return uexPrices; }
+
+    if(!sfData.length) return uexPrices;
+
+    // Index UEX par (id_terminal, id_commodity)
+    const uexMap = new Map();
+    for(const p of uexPrices){
+        uexMap.set(`${p.id_terminal}_${p.id_commodity}`, p);
+    }
+
+    // Index SF par même clé
+    const sfMap = new Map();
+    for(const s of sfData){
+        sfMap.set(`${s.id_terminal}_${s.id_commodity}`, s);
+    }
+
+    const merged = [...uexPrices];
+
+    for(const [key, sf] of sfMap){
+        const uex = uexMap.get(key);
+        if(!uex){
+            // Prix SF sans équivalent UEX → on l'ajoute directement
+            merged.push(sfToUexFormat(sf));
+            continue;
+        }
+
+        // Vérifier cohérence : SF ne doit pas dévier de plus de 30% vs UEX
+        const buyOk  = !sf.price_buy  || !uex.price_buy  || Math.abs(sf.price_buy  - uex.price_buy)  / uex.price_buy  < 0.30;
+        const sellOk = !sf.price_sell || !uex.price_sell || Math.abs(sf.price_sell - uex.price_sell) / uex.price_sell < 0.30;
+        if(!buyOk || !sellOk) continue; // outlier → on garde UEX
+
+        // SF est plus récent que UEX ?
+        const sfTs  = sf.submitted_at || 0;
+        const uexTs = uex.date_modified || 0;
+        if(sfTs > uexTs){
+            // On remplace dans le tableau merged
+            const idx = merged.indexOf(uex);
+            if(idx !== -1) merged[idx] = sfToUexFormat(sf, uex);
+        }
+    }
+
+    return merged;
+}
+
+function sfToUexFormat(sf, uexBase){
+    return {
+        ...(uexBase || {}),
+        id_terminal:      sf.id_terminal,
+        id_commodity:     sf.id_commodity,
+        terminal_name:    sf.terminal_name    || uexBase?.terminal_name    || '',
+        commodity_name:   sf.commodity_name   || uexBase?.commodity_name   || '',
+        commodity_code:   sf.commodity_code   || uexBase?.commodity_code   || '',
+        price_buy:        sf.price_buy  || uexBase?.price_buy  || 0,
+        price_sell:       sf.price_sell || uexBase?.price_sell || 0,
+        scu_buy:          sf.scu_buy    || uexBase?.scu_buy    || 0,
+        date_modified:    sf.submitted_at || 0,
+        _source:          'sf',   // badge SF
+    };
 }
 
 // ═══════════════════════════════════════════
@@ -1522,6 +1603,7 @@ function calcRoutes(prices, comms, cfg){
                     // Fraîcheur des données
                     buyUpdated:   buy.date_modified  || 0,
                     sellUpdated:  sell.date_modified || 0,
+                    _source:      buy._source || 'uex',
                     // IDs pour rapport UEX
                     commodityId:  com.id,
                     buyTermId:    buy.id_terminal,
@@ -1743,6 +1825,7 @@ function calcMultiHop(prices, comms, cfg){
             sellMax:     trade.sellP.scu_sell_max   || 0,
             buyUpdated:  trade.buyP.date_modified   || 0,
             sellUpdated: trade.sellP.date_modified  || 0,
+            source:      trade.buyP._source || 'uex',
         };
     }
 
@@ -1936,7 +2019,7 @@ function renderMultiHop(chains){
                 <div class="mh-invest">💵 ${fmtAuec(leg.investment)}</div>
                 <div class="mh-action">${T('card.legSell')}</div>
                 <div class="mh-to" title="${esc(leg.toName)}">${esc(leg.toName)}<button class="btn-setpos" onclick="setPosition('${esc2(leg.toName)}')" title="${T('card.setpos')}">${T('card.setpos')}</button></div>
-                <div class="mh-sell-p">${leg.buyPrice.toLocaleString()} → ${leg.sellPrice.toLocaleString()} aUEC/SCU ${freshBadge(leg.buyUpdated)}</div>
+                <div class="mh-sell-p">${leg.buyPrice.toLocaleString()} → ${leg.sellPrice.toLocaleString()} aUEC/SCU ${freshBadge(leg.buyUpdated)} ${sourceBadge(leg.source)}</div>
                 <div class="mh-profit ${pCls}">+${fmtAuec(leg.legProfit)}</div>
                 ${stockBar(leg.stockCur, leg.stockMax, '📦', T('card.stockLabel'))}
                 ${stockBar(leg.sellCur,  leg.sellMax,  '🛒', T('card.sellLabel'))}
@@ -2046,7 +2129,7 @@ function renderTable(routes){
             <td><div class="t-name">${esc(r.commodity)}${ill}</div><div class="t-loc" style="color:var(--text-3)">${esc(r.comCode)}</div></td>
             <td>
                 <div class="t-name">${esc(r.buyTerminal)} <button class="btn-setpos" onclick="setPosition('${esc2(r.buyTerminal)}')">${T('card.setpos')}</button></div>
-                <div class="t-loc">${esc(byLoc)} ${freshBadge(r.buyUpdated)}</div>
+                <div class="t-loc">${esc(byLoc)} ${freshBadge(r.buyUpdated)} ${sourceBadge(r._source)}</div>
                 ${stockBar(r.stockCur, r.stockMax, '📦', T('card.stockLabel'))}
             </td>
             <td>
@@ -2319,6 +2402,11 @@ function freshBadge(ts){
     const a = dataAge(ts);
     if(!a) return '';
     return `<span class="fresh-badge ${a.cls}" title="${a.tip}">🕐 ${a.label}</span>`;
+}
+
+function sourceBadge(source){
+    if(source === 'sf') return `<span style="font-size:9px;font-weight:700;background:rgba(139,92,246,.2);color:#8b5cf6;border:1px solid #8b5cf6;border-radius:3px;padding:1px 4px;letter-spacing:.5px">SF</span>`;
+    return '';
 }
 
 // ═══════════════════════════════════════════
@@ -2606,6 +2694,26 @@ async function submitValidate(){
         const endpoint = `${API}/data_submit`;
         const fetchHeaders = { 'Content-Type': 'application/json' };
         if(uexKey) fetchHeaders['x-user-key'] = uexKey;
+
+        // Envoi SF (D1) en parallèle — silencieux si échec
+        const sfPayloadBuy = {
+            id_terminal: r.buyTermId, id_commodity: r.commodityId,
+            terminal_name: r.buyTerminal, commodity_name: r.commodity,
+            commodity_code: r.comCode || '',
+            price_buy: buyPrice, scu_buy: scu, rsi_handle: handle
+        };
+        const sfPayloadSell = {
+            id_terminal: r.sellTermId, id_commodity: r.commodityId,
+            terminal_name: r.sellTerminal, commodity_name: r.commodity,
+            commodity_code: r.comCode || '',
+            price_sell: sellPrice, rsi_handle: handle
+        };
+        if(location.protocol !== 'file:'){
+            Promise.all([
+                fetch(`${SF_API}/report`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sfPayloadBuy)  }),
+                fetch(`${SF_API}/report`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sfPayloadSell) }),
+            ]).catch(()=>{});
+        }
 
         const [rBuy, rSell] = await Promise.all([
             fetch(endpoint, { method:'POST', headers: fetchHeaders, body: JSON.stringify(buyPayload) }),

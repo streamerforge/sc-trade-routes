@@ -1,0 +1,8 @@
+name = "sc-trade-routes"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "SF_DB"
+database_name = "sf-trade-data"
+database_id = "39838b4e-583f-4ca3-ace3-707e5dd59266"
