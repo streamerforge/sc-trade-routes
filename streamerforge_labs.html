@@ -1002,9 +1002,9 @@
         </div>
 
         <footer>
-            <span>Données : <a href="https://uexcorp.space" target="_blank">UEX Corp</a> — Communauté, peut ne pas refléter le live. Cache 15 min.</span>
+            <span data-i18n-html="footer.data">Données : <a href="https://uexcorp.space" target="_blank">UEX Corp</a> — Communauté, peut ne pas refléter le live. Cache 15 min.</span>
             <span id="footerInfo"></span>
-            <span style="color:var(--text-2)">Outil créé par <strong style="color:#e67e22">Vinyle</strong> &nbsp;·&nbsp; <a href="https://discord.gg/sUc27b6E8" target="_blank" style="color:#8b5cf6;font-weight:700">Streamer Forge</a></span>
+            <span style="color:var(--text-2)" data-i18n-html="footer.credits">Outil créé par <strong style="color:#e67e22">Vinyle</strong> &nbsp;·&nbsp; <a href="https://discord.gg/sUc27b6E8" target="_blank" style="color:#8b5cf6;font-weight:700">Streamer Forge</a></span>
         </footer>
     </div>
 </div>
@@ -1138,6 +1138,8 @@ const TRANSLATIONS = {
     'load.connect':'Connexion à UEX Corp…','load.calc':'Calcul en cours…','load.routes':'Calcul des routes optimales…',
     'conn.ok':'UEX Corp — Connecté','footer.priceCount':'{n} entrées de prix — {c} commodités',
     'load.prices':'Chargement des prix ({sys})…','load.pricesProg':'Chargement des prix… {done} / {total} terminaux',
+    'footer.data':'Données : <a href="https://uexcorp.space" target="_blank">UEX Corp</a> — Communauté, peut ne pas refléter le live. Cache 15 min.',
+    'footer.credits':'Outil créé par <strong style="color:#e67e22">Vinyle</strong> &nbsp;·&nbsp; <a href="https://discord.gg/sUc27b6E8" target="_blank" style="color:#8b5cf6;font-weight:700">Streamer Forge</a>',
   },
   en: {
     'nav.guide':'❓ Guide','nav.join':'Join Streamer Forge',
@@ -1215,6 +1217,8 @@ const TRANSLATIONS = {
     'load.connect':'Connecting to UEX Corp…','load.calc':'Computing…','load.routes':'Calculating optimal routes…',
     'conn.ok':'UEX Corp — Connected','footer.priceCount':'{n} price entries — {c} commodities',
     'load.prices':'Loading prices ({sys})…','load.pricesProg':'Loading prices… {done} / {total} terminals',
+    'footer.data':'Data: <a href="https://uexcorp.space" target="_blank">UEX Corp</a> — Community data, may not reflect live. Cached 15 min.',
+    'footer.credits':'Tool by <strong style="color:#e67e22">Vinyle</strong> &nbsp;·&nbsp; <a href="https://discord.gg/sUc27b6E8" target="_blank" style="color:#8b5cf6;font-weight:700">Streamer Forge</a>',
   }
 };
 
@@ -1233,8 +1237,10 @@ function applyLang(){
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = T(el.dataset.i18nPlaceholder); });
     document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = T(el.dataset.i18nTitle); });
     document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === _lang); });
-    if(typeof S !== 'undefined' && window._vRoutes?.length) renderSimpleResults(window._vRoutes);
-    if(typeof S !== 'undefined' && window._vCircuits?.length) renderMultiHop(window._vCircuits);
+    if(typeof S !== 'undefined'){
+        if(S.mode === 'simple'  && window._vRoutes?.length)   renderTable(window._vRoutes);
+        if(S.mode === 'circuit' && window._vCircuits?.length) renderMultiHop(window._vCircuits);
+    }
     if(document.getElementById('tutoOverlay')?.style.display !== 'none') renderTutoStep();
 }
 
