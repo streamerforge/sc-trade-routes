@@ -1179,6 +1179,7 @@ const TRANSLATIONS = {
     'modal.err.sellPrice':'⚠️ Prix de vente invalide.',
     'modal.err.scu':'⚠️ Stock restant requis (0 si épuisé).',
     'modal.sellCap':'Capacité vente','modal.sellCapHint':'SCU que la station peut encore absorber',
+    'modal.scuBought':'SCU achetés','modal.scuBoughtHint':'Chargé dans ton vaisseau',
     'modal.titleBuy':'🛒 J\'ai acheté ici',
     'modal.titleSell':'💰 J\'ai vendu ici',
     'modal.saveBuy':'💾 Sauvegarder mon achat',
@@ -1282,6 +1283,7 @@ const TRANSLATIONS = {
     'modal.err.sellPrice':'⚠️ Invalid sell price.',
     'modal.err.scu':'⚠️ Remaining stock required (0 if sold out).',
     'modal.sellCap':'Sell capacity','modal.sellCapHint':'SCU the station can still absorb',
+    'modal.scuBought':'SCU purchased','modal.scuBoughtHint':'Loaded onto your ship',
     'modal.titleBuy':'🛒 I bought here',
     'modal.titleSell':'💰 I sold here',
     'modal.saveBuy':'💾 Save my purchase',
@@ -2710,10 +2712,11 @@ function setModalMode(mode){
     _vModalMode = mode;
     const isBuy = mode === 'buy';
     // Champs
-    document.getElementById('vmBuyField').style.display     = isBuy ? '' : 'none';
-    document.getElementById('vmScuField').style.display     = isBuy ? '' : 'none';
-    document.getElementById('vmSellField').style.display    = isBuy ? 'none' : '';
-    document.getElementById('vmSellCapField').style.display = isBuy ? 'none' : '';
+    document.getElementById('vmBuyField').style.display      = isBuy ? '' : 'none';
+    document.getElementById('vmScuBoughtField').style.display = isBuy ? '' : 'none';
+    document.getElementById('vmScuField').style.display      = isBuy ? '' : 'none';
+    document.getElementById('vmSellField').style.display     = isBuy ? 'none' : '';
+    document.getElementById('vmSellCapField').style.display  = isBuy ? 'none' : '';
     // Sections
     document.getElementById('vmDrSection').style.display      = isBuy ? 'none' : '';
     document.getElementById('vmBuySaveSection').style.display = isBuy ? '' : 'none';
@@ -2736,13 +2739,62 @@ function loadPendingBuy(termId, commId){
 }
 
 function saveBuyData(){
-    const handle   = document.getElementById('vmHandle').value.trim();
-    const buyPrice = parseFloat(document.getElementById('vmBuyPrice').value);
-    const scu      = parseInt(document.getElementById('vmScu').value);
-    const msg      = document.getElementById('vmMsg');
+    const handle    = document.getElementById('vmHandle').value.trim();
+    const buyPrice  = parseFloat(document.getElementById('vmBuyPrice').value);
+    const scuBought = parseInt(document.getElementById('vmScuBought').value);
+    const scu       = parseInt(document.getElementById('vmScu').value);
+    const msg       = document.getElementById('vmMsg');
     if(!handle){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.handle'); return; }
     if(!buyPrice||buyPrice<=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.buyPrice'); return; }
-    const r = _vCurrent;
+    if(isNaN(scuBought)||scuBought<=0){ msg.style.color='var(--red)'; msg.style.display=''; msg.textContent=_lang==='en'?'SCU purchased required.':'SCU achetés requis.'; return; }
+    const r    = _vCurrent;
+    const isFr = _lang !== 'en';
+    const ref  = getUexRef(r.buyTermId, r.commodityId);
+
+    // Validation cargo — ne peut pas acheter plus que le vaisseau
+    const shipScu = getScu();
+    if(shipScu && scuBought > shipScu){
+        msg.style.color = 'var(--red)'; msg.style.display = '';
+        msg.textContent = isFr
+            ? `❌ Impossible : ${scuBought} SCU > cargo vaisseau (${shipScu} SCU)`
+            : `❌ Impossible: ${scuBought} SCU > ship cargo (${shipScu} SCU)`;
+        return;
+    }
+
+    // Plafond dur — stock restant ne peut pas dépasser le max terminal UEX
+    if(ref && ref.scu_buy_max > 0 && !isNaN(scu) && scu > ref.scu_buy_max){
+        msg.style.color = 'var(--red)'; msg.style.display = '';
+        msg.textContent = isFr
+            ? `❌ Stock restant impossible : ${scu} SCU > max terminal (${ref.scu_buy_max} SCU)`
+            : `❌ Remaining stock impossible: ${scu} SCU > terminal max (${ref.scu_buy_max} SCU)`;
+        return;
+    }
+
+    // Fourchette prix achat UEX
+    if(ref && ref.price_buy_min > 0 && ref.price_buy_max > 0
+       && (buyPrice < ref.price_buy_min || buyPrice > ref.price_buy_max)){
+        msg.style.color   = 'var(--amber)'; msg.style.display = '';
+        msg.textContent   = isFr
+            ? `⚠️ Prix achat hors fourchette UEX (${ref.price_buy_min.toLocaleString()}–${ref.price_buy_max.toLocaleString()} aUEC/SCU) — vérifie avant de sauvegarder.`
+            : `⚠️ Buy price outside UEX range (${ref.price_buy_min.toLocaleString()}–${ref.price_buy_max.toLocaleString()} aUEC/SCU) — please verify.`;
+        // Warning seulement, on laisse sauvegarder quand même après 3s
+        setTimeout(()=>{
+            const pending2 = {
+                id_terminal: r.buyTermId, id_commodity: r.commodityId,
+                terminal_name: r.buyTerminal, commodity_name: r.commodity,
+                commodity_code: r.comCode||'', price_buy: buyPrice,
+                scu_remaining: isNaN(scu)?0:scu, rsi_handle: handle,
+                id_terminal_sell: r.sellTermId, terminal_name_sell: r.sellTerminal,
+                saved_at: Math.floor(Date.now()/1000),
+            };
+            localStorage.setItem('sf_pending_buy', JSON.stringify(pending2));
+            localStorage.setItem('sf_rsi_handle', handle);
+            msg.style.color = 'var(--green)';
+            msg.textContent = T('modal.buySaved');
+            setTimeout(closeValidate, 1800);
+        }, 3000);
+        return;
+    }
     const pending = {
         id_terminal:       r.buyTermId,
         id_commodity:      r.commodityId,
@@ -2750,6 +2802,7 @@ function saveBuyData(){
         commodity_name:    r.commodity,
         commodity_code:    r.comCode || '',
         price_buy:         buyPrice,
+        scu_bought:        scuBought,
         scu_remaining:     isNaN(scu) ? 0 : scu,
         rsi_handle:        handle,
         id_terminal_sell:  r.sellTermId,
@@ -2873,7 +2926,8 @@ function _showSavedBuyInfo(r){
     const el    = document.getElementById('vmSavedBuyInfo');
     if(saved){
         const ago = Math.floor((Date.now()/1000 - saved.saved_at)/60);
-        el.innerHTML = `✅ <strong>${T('modal.buyPending')}</strong> — ${saved.terminal_name} · ${saved.price_buy.toLocaleString()} aUEC/SCU · stock restant : ${saved.scu_remaining} SCU <span style="opacity:.5">(il y a ${ago}min)</span>`;
+        const scuBoughtStr = saved.scu_bought ? ` · ${saved.scu_bought} SCU achetés` : '';
+        el.innerHTML = `✅ <strong>${T('modal.buyPending')}</strong> — ${saved.terminal_name} · ${saved.price_buy.toLocaleString()} aUEC/SCU${scuBoughtStr} · stock restant : ${saved.scu_remaining} SCU <span style="opacity:.5">(il y a ${ago}min)</span>`;
         el.style.display = '';
         // Cacher les champs buy dans la grille — ils seront chargés depuis le pending
         document.getElementById('vmBuyPrice').value = saved.price_buy;
@@ -2883,8 +2937,9 @@ function _showSavedBuyInfo(r){
         el.style.color = 'var(--amber)';
         el.style.display = '';
         // Pas de données sauvegardées → afficher les champs buy pour saisie manuelle
-        document.getElementById('vmBuyField').style.display = '';
-        document.getElementById('vmScuField').style.display = '';
+        document.getElementById('vmBuyField').style.display      = '';
+        document.getElementById('vmScuBoughtField').style.display = '';
+        document.getElementById('vmScuField').style.display      = '';
     }
 }
 
@@ -2945,16 +3000,23 @@ function showSuccessSummary(target, buyPrice, sellPrice, scu, sellCap, r){
     localStorage.removeItem('sf_pending_buy');
 }
 
-async function submitValidate(target = 'both'){
+function getUexRef(termId, commId){
+    if(!S.rawUexPrices) return null;
+    return S.rawUexPrices.find(p => p.id_terminal === termId && p.id_commodity === commId) || null;
+}
+
+async function submitValidate(target = 'both', forceSubmit = false){
     const r        = _vCurrent;
     const handle   = document.getElementById('vmHandle').value.trim();
     const sellPrice= parseFloat(document.getElementById('vmSellPrice').value);
     const msg      = document.getElementById('vmMsg');
 
     // Charger les données achat : depuis le pending localStorage ou depuis les champs
-    const pending  = loadPendingBuy(r.buyTermId, r.commodityId);
-    const buyPrice = pending ? pending.price_buy     : parseFloat(document.getElementById('vmBuyPrice').value);
-    const scu      = pending ? pending.scu_remaining : parseInt(document.getElementById('vmScu').value);
+    const pending   = loadPendingBuy(r.buyTermId, r.commodityId);
+    const buyPrice  = pending ? pending.price_buy     : parseFloat(document.getElementById('vmBuyPrice').value);
+    const scu       = pending ? pending.scu_remaining : parseInt(document.getElementById('vmScu').value);
+    const scuBought = pending ? pending.scu_bought    : parseInt(document.getElementById('vmScuBought')?.value) || 0;
+    const sellCap   = parseInt(document.getElementById('vmSellCap')?.value) || 0;
 
     const uexKey = (document.getElementById('vmUexKey')?.value.trim()) || localStorage.getItem('sf_uex_key') || '';
 
@@ -2963,11 +3025,54 @@ async function submitValidate(target = 'both'){
     if(!buyPrice  || buyPrice <=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.buyPrice'); return; }
     if(!sellPrice || sellPrice<=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.sellPrice'); return; }
     if(isNaN(scu) || scu < 0)    { msg.style.color='var(--red)'; msg.textContent=T('modal.err.scu'); return; }
+    if(!scuBought || scuBought<=0){ msg.style.color='var(--red)'; msg.style.display=''; msg.textContent=_lang==='en'?'SCU purchased required.':'SCU achetés requis.'; return; }
+    const shipScuV = getScu();
+    if(shipScuV && scuBought > shipScuV){ msg.style.color='var(--red)'; msg.style.display=''; msg.textContent=_lang==='en'?`❌ Impossible: ${scuBought} SCU > ship cargo (${shipScuV} SCU)`:`❌ Impossible : ${scuBought} SCU > cargo vaisseau (${shipScuV} SCU)`; return; }
 
     // Clé UEX requise pour UEX et les deux
     if((target === 'uex' || target === 'both') && !uexKey){
         msg.style.color='var(--red)'; msg.textContent=T('modal.err.uexKeyNeeded');
         document.getElementById('vmDrSection').open=true; return;
+    }
+
+    // ── Outlier detection ─────────────────────────────────────────
+    if(!forceSubmit){
+        const refBuy  = getUexRef(r.buyTermId,  r.commodityId);
+        const refSell = getUexRef(r.sellTermId, r.commodityId);
+        const isFr    = _lang !== 'en';
+
+        // Plafonds durs — blocage immédiat
+        if(refBuy && refBuy.scu_buy_max > 0 && scu > refBuy.scu_buy_max){
+            msg.style.color = 'var(--red)'; msg.style.display = '';
+            msg.textContent = isFr
+                ? `❌ Stock restant impossible : ${scu} SCU > max terminal (${refBuy.scu_buy_max} SCU)`
+                : `❌ Remaining stock impossible: ${scu} SCU > terminal max (${refBuy.scu_buy_max} SCU)`;
+            return;
+        }
+
+        // Fourchette de prix — avertissement + confirmation
+        const warns = [];
+        if(refBuy){
+            const bMin = refBuy.price_buy_min, bMax = refBuy.price_buy_max;
+            if(bMin > 0 && bMax > 0 && (buyPrice < bMin || buyPrice > bMax))
+                warns.push(isFr
+                    ? `Prix achat hors fourchette UEX (${bMin.toLocaleString()}–${bMax.toLocaleString()} aUEC/SCU)`
+                    : `Buy price outside UEX range (${bMin.toLocaleString()}–${bMax.toLocaleString()} aUEC/SCU)`);
+        }
+        if(refSell){
+            const sMin = refSell.price_sell_min, sMax = refSell.price_sell_max;
+            if(sMin > 0 && sMax > 0 && (sellPrice < sMin || sellPrice > sMax))
+                warns.push(isFr
+                    ? `Prix vente hors fourchette UEX (${sMin.toLocaleString()}–${sMax.toLocaleString()} aUEC/SCU)`
+                    : `Sell price outside UEX range (${sMin.toLocaleString()}–${sMax.toLocaleString()} aUEC/SCU)`);
+        }
+        if(warns.length > 0){
+            msg.style.color   = 'var(--amber)';
+            msg.style.display = '';
+            const btnStyle = 'margin-top:6px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:var(--amber);padding:4px 14px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700';
+            msg.innerHTML = `⚠️ ${warns.join('<br>⚠️ ')}<br><button style="${btnStyle}" onclick="submitValidate('${target}',true)">${isFr ? 'Confirmer quand même' : 'Submit anyway'}</button>`;
+            return;
+        }
     }
 
     // Désactiver les 3 boutons
@@ -3008,7 +3113,6 @@ async function submitValidate(target = 'both'){
 
         const sfH = {'Content-Type':'application/json'};
         const sfPayloadBuy  = { id_terminal:r.buyTermId,  id_commodity:r.commodityId, terminal_name:r.buyTerminal,  commodity_name:r.commodity, commodity_code:r.comCode||'', price_buy:buyPrice,  scu_buy:scu,  rsi_handle:handle };
-        const sellCap = parseInt(document.getElementById('vmSellCap')?.value) || 0;
         const sfPayloadSell = { id_terminal:r.sellTermId, id_commodity:r.commodityId, terminal_name:r.sellTerminal, commodity_name:r.commodity, commodity_code:r.comCode||'', price_sell:sellPrice, scu_sell:sellCap, rsi_handle:handle };
 
         // ── SF ───────────────────────────────────────────────────────
@@ -3316,6 +3420,10 @@ if(!localStorage.getItem('sf_tuto_done')){
             <div class="modal-field" id="vmBuyField">
                 <label data-i18n="modal.buyPrice">Prix achat/SCU</label>
                 <input type="number" id="vmBuyPrice" min="0" step="0.01" style="font-size:12px">
+            </div>
+            <div class="modal-field" id="vmScuBoughtField">
+                <label><span data-i18n="modal.scuBought">SCU achetés</span> <span style="color:var(--red)">*</span><br><span style="font-size:9px;opacity:.7;text-transform:none;letter-spacing:0" data-i18n="modal.scuBoughtHint">Chargé dans ton vaisseau</span></label>
+                <input type="number" id="vmScuBought" min="0" step="1" style="font-size:12px">
             </div>
             <div class="modal-field" id="vmSellField">
                 <label data-i18n="modal.sellPrice">Prix vente/SCU</label>
