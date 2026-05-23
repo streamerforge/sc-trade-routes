@@ -381,6 +381,7 @@
         .tab-btn:first-child { border-radius: 5px 0 0 5px; }
         .tab-btn:last-child  { border-radius: 0 5px 5px 0; margin-left: -1px; }
         .tab-btn.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+        .tab-btn.active.stock-active { background: rgba(16,185,129,.12); border-color: var(--green); color: var(--green); }
         .tab-btn:not(.active):hover { border-color: var(--border-hi); color: var(--text); }
 
         /* ── CIRCUITS MULTI-ÉTAPES ── */
@@ -987,6 +988,10 @@
                 <input type="text" id="search" placeholder="🔍  Filtrer commodité / terminal…"
                        data-i18n-placeholder="results.search" style="width:220px;" oninput="doFilter()">
                 <div class="tabs">
+                    <button class="tab-btn active" id="stockYield" onclick="switchStockMode('yield')" data-i18n="stock.yield">📈 Meilleur rendement</button>
+                    <button class="tab-btn"         id="stockDispo" onclick="switchStockMode('dispo')" data-i18n="stock.dispo">📦 Stock dispo</button>
+                </div>
+                <div class="tabs">
                     <button class="tab-btn active" id="tabSimple"  onclick="switchTab('simple')" data-i18n="results.tabSimple">Trajets simples</button>
                     <button class="tab-btn"         id="tabCircuit" onclick="switchTab('circuit')" data-i18n="results.tabCircuit">⟳ Circuits</button>
                 </div>
@@ -1055,6 +1060,7 @@ const S = {
     sortDir:-1,
     ship:null,
     mode:'simple',
+    stockMode:'yield',         // 'yield' = ignore stock | 'stock' = filtre stock dispo
     startTerminalName: null,   // position actuelle forcée
 };
 
@@ -1091,6 +1097,7 @@ const TRANSLATIONS = {
     'card.stockLabel':'Stock dispo','card.sellLabel':'Capacité vente',
     'card.legBuy':'↓ achète','card.legSell':'↓ vend à',
     'card.step':'Étape','card.return':'Retour','card.circuit':'Circuit',
+    'stock.yield':'📈 Meilleur rendement','stock.dispo':'📦 Stock dispo',
     'card.qty':'Qté','card.legProfit':'Profit leg',
     'refresh.checking':'⏳ Vérification…',
     'refresh.empty':'🚫 Stock vide — <strong>{commodity}</strong> épuisé à {terminal}',
@@ -1171,6 +1178,7 @@ const TRANSLATIONS = {
     'card.stockLabel':'Available stock','card.sellLabel':'Sell capacity',
     'card.legBuy':'↓ buy','card.legSell':'↓ sell at',
     'card.step':'Step','card.return':'Return','card.circuit':'Circuit',
+    'stock.yield':'📈 Best yield','stock.dispo':'📦 Stock available',
     'card.qty':'Qty','card.legProfit':'Leg profit',
     'refresh.checking':'⏳ Checking…',
     'refresh.empty':'🚫 Empty stock — <strong>{commodity}</strong> sold out at {terminal}',
@@ -1450,6 +1458,9 @@ function calcRoutes(prices, comms, cfg){
                 const profScu = sell.price_sell - buy.price_buy;
                 if(profScu<=0) continue;
 
+                // Mode stock : écarte les routes sans stock connu
+                if(cfg.stockMode === 'dispo' && buy.scu_buy === 0) continue;
+
                 // Quantité maximale achetable
                 const byBudget  = Math.floor(budget / buy.price_buy);
                 const byStock   = (buy.scu_buy > 0)          ? buy.scu_buy          : Infinity;
@@ -1519,6 +1530,26 @@ function calcRoutes(prices, comms, cfg){
 }
 
 // ═══════════════════════════════════════════
+//  CONFIG PARTAGÉE
+// ═══════════════════════════════════════════
+function buildCfg(scu){
+    return {
+        scu:          scu !== undefined ? scu : getScu(),
+        budget:       parseFloat(document.getElementById('budget').value)||0,
+        spaceOnly:    document.getElementById('togSpace').checked,
+        noIllegal:    document.getElementById('togIllegal').checked,
+        checkSellCap: document.getElementById('togSellCap').checked,
+        minFill:      (parseFloat(document.getElementById('minFill').value)||0) / 100,
+        minProfit:    parseFloat(document.getElementById('minProfit').value)||0,
+        system:       document.getElementById('sysFilter').value,
+        hopCount:     parseInt(document.getElementById('hopCount').value) || 5,
+        closedCircuit:document.getElementById('togClosed').checked,
+        startTerminal:S.startTerminalName || null,
+        stockMode:    S.stockMode,
+    };
+}
+
+// ═══════════════════════════════════════════
 //  MAIN : CALCULER
 // ═══════════════════════════════════════════
 async function calculate(){
@@ -1539,19 +1570,7 @@ async function calculate(){
         showLoad(T('load.routes'));
         await sleep(30);
 
-        const cfg = {
-            scu,
-            budget:       parseFloat(document.getElementById('budget').value)||0,
-            spaceOnly:    document.getElementById('togSpace').checked,
-            noIllegal:    document.getElementById('togIllegal').checked,
-            checkSellCap: document.getElementById('togSellCap').checked,
-            minFill:      (parseFloat(document.getElementById('minFill').value)||0) / 100,
-            minProfit:    parseFloat(document.getElementById('minProfit').value)||0,
-            system:        document.getElementById('sysFilter').value,
-            hopCount:      parseInt(document.getElementById('hopCount').value) || 5,
-            closedCircuit: document.getElementById('togClosed').checked,
-            startTerminal: S.startTerminalName || null,
-        };
+        const cfg = buildCfg(scu);
 
         const routes = calcRoutes(prices, comms, cfg);
         const circuits = calcMultiHop(prices, comms, cfg);
@@ -1638,6 +1657,8 @@ function calcMultiHop(prices, comms, cfg){
                 if(!sellP) continue;
                 const profScu = sellP.price_sell - buyP.price_buy;
                 if(profScu <= 0) continue;
+                // Mode stock : écarte les legs sans stock connu
+                if(cfg.stockMode === 'dispo' && buyP.scu_buy === 0) continue;
                 // Compare sur le profit TOTAL réel (pas juste /SCU) :
                 // tient compte du stock d'achat, capacité vente ET capacité vaisseau
                 const _scu       = cfg.scu || 1e6;
@@ -1946,6 +1967,27 @@ function renderMultiHop(chains){
 // ═══════════════════════════════════════════
 //  SWITCH TAB
 // ═══════════════════════════════════════════
+function switchStockMode(mode){
+    S.stockMode = mode;
+    const yBtn = document.getElementById('stockYield');
+    const dBtn = document.getElementById('stockDispo');
+    yBtn.classList.toggle('active', mode==='yield');
+    dBtn.classList.toggle('active', mode==='dispo');
+    yBtn.classList.remove('stock-active');
+    dBtn.classList.remove('stock-active');
+    if(mode==='dispo') dBtn.classList.add('stock-active');
+    // Recalcul si des données sont déjà chargées
+    if(S.prices?.length){
+        const cfg = buildCfg();
+        S.routes   = calcRoutes(S.prices, S.comms, cfg);
+        S.filtered = S.routes;
+        S.circuits = calcMultiHop(S.prices, S.comms, cfg);
+        document.getElementById('search').value = '';
+        if(S.mode==='simple')  renderTable(S.routes);
+        else                   renderMultiHop(S.circuits);
+    }
+}
+
 function switchTab(mode){
     S.mode = mode;
     document.getElementById('tabSimple').classList.toggle('active',  mode==='simple');
@@ -2600,7 +2642,10 @@ Ce guide te montre comment utiliser l'outil <strong>dans le bon ordre</strong> p
     desc: `Clique sur <span class="hl-cyan">⚡ Calculer les routes</span> pour lancer l'analyse.<br><br>
 Tu as deux modes de vue :<br><br>
 <strong>Trajets simples</strong> — Un aller direct : achète ici, vends là-bas. Idéal pour commencer ou tester une marchandise.<br><br>
-<strong>⟳ Circuits</strong> — Plusieurs étapes enchaînées pour maximiser le profit sur un seul plein de cargo. L'algo choisit les combinaisons qui remplissent au mieux ton vaisseau.`,
+<strong>⟳ Circuits</strong> — Plusieurs étapes enchaînées pour maximiser le profit sur un seul plein de cargo. L'algo choisit les combinaisons qui remplissent au mieux ton vaisseau.<br><br>
+Et deux modes de filtrage stock :<br><br>
+<strong>📈 Meilleur rendement</strong> — Affiche toutes les routes, même si le stock est vide. Utile pour planifier à l'avance.<br><br>
+<strong>📦 Stock dispo</strong> — N'affiche que les routes où du stock est disponible maintenant. Recommandé pour trader en direct.`,
     tip: '💡 La première fois, le chargement prend quelques secondes. Ensuite les données sont mises en cache 3 minutes pour des recalculs instantanés.'
   },
   {
@@ -2670,7 +2715,10 @@ This guide shows you how to use the tool <strong>in the right order</strong> to 
     desc: `Click <span class="hl-cyan">⚡ Calculate routes</span> to start the analysis.<br><br>
 You have two view modes:<br><br>
 <strong>Simple routes</strong> — A direct trip: buy here, sell there. Ideal to start or test a commodity.<br><br>
-<strong>⟳ Circuits</strong> — Multiple chained steps to maximize profit on a single cargo run. The algorithm picks the best combinations to fill your ship.`,
+<strong>⟳ Circuits</strong> — Multiple chained steps to maximize profit on a single cargo run. The algorithm picks the best combinations to fill your ship.<br><br>
+And two stock filter modes:<br><br>
+<strong>📈 Best yield</strong> — Shows all routes, even if stock is empty. Useful for planning ahead.<br><br>
+<strong>📦 Stock available</strong> — Only shows routes where stock is available right now. Recommended for live trading.`,
     tip: '💡 The first time, loading takes a few seconds. Then data is cached for 3 minutes for instant recalculations.'
   },
   {
