@@ -382,6 +382,13 @@
         .tab-btn:last-child  { border-radius: 0 5px 5px 0; margin-left: -1px; }
         .tab-btn.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
         .tab-btn.active.stock-active { background: rgba(16,185,129,.12); border-color: var(--green); color: var(--green); }
+        .tab-btn.active.sf-active    { background: rgba(139,92,246,.12); border-color: var(--purple); color: var(--purple); }
+        .tab-btn.active.cross-active { background: rgba(16,185,129,.12); border-color: var(--green);  color: var(--green); }
+        .fresh-wrap { display: flex; align-items: center; gap: 5px; }
+        .fresh-wrap label { font-size: 10px; color: var(--text-2); font-weight: 700; letter-spacing: .8px; text-transform: uppercase; white-space: nowrap; }
+        .fresh-select { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-2); border-radius: 5px; padding: 4px 6px; font-size: 11px; font-weight: 700; cursor: pointer; height: 28px; transition: all .15s; }
+        .fresh-select:hover { border-color: var(--border-hi); }
+        .fresh-select.active { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,.08); }
         .tab-btn:not(.active):hover { border-color: var(--border-hi); color: var(--text); }
 
         /* ── CIRCUITS MULTI-ÉTAPES ── */
@@ -611,12 +618,15 @@
         }
         .btn-validate:hover svg { transform: scale(1.15); }
         /* Variante leg circuit : pleine largeur avec texte */
-        .btn-validate-leg {
-            font-size: 11px; color: var(--green);
-            padding: 5px 10px; gap: 4px;
-            font-weight: 600; letter-spacing: .3px;
-        }
+        .btn-validate-leg { font-size: 11px; color: var(--green); padding: 5px 10px; gap: 4px; font-weight: 600; letter-spacing: .3px; }
         .btn-validate-leg:hover { color: #fff; }
+        .btn-validate-buy  { border-color: rgba(16,185,129,.35); color: var(--green); font-size:11px; padding:5px 8px; font-weight:600; }
+        .btn-validate-buy:hover  { background: rgba(16,185,129,.15); border-color: var(--green); color:#fff; }
+        .btn-validate-sell { border-color: rgba(14,165,233,.35);  color: #0ea5e9;    font-size:11px; padding:5px 8px; font-weight:600; }
+        .btn-validate-sell:hover { background: rgba(14,165,233,.15); border-color: #0ea5e9; color:#fff; }
+        .leg-validate-btns { display: flex; gap: 5px; }
+        .vm-saved-buy { background: rgba(16,185,129,.07); border: 1px solid rgba(16,185,129,.25); border-radius:6px; padding:8px 10px; margin-bottom:10px; font-size:11px; color:var(--green); }
+        .vm-saved-buy strong { color:var(--text); }
 
         /* Refresh / actualiser leg */
         .leg-actions { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
@@ -996,6 +1006,23 @@
             <div style="margin-left:auto; display:flex; align-items:center; gap:12px;">
                 <input type="text" id="search" placeholder="🔍  Filtrer commodité / terminal…"
                        data-i18n-placeholder="results.search" style="width:220px;" oninput="doFilter()">
+                <div class="fresh-wrap">
+                    <label>🕐</label>
+                    <select id="freshMaxH" class="fresh-select" onchange="onFreshChange(this.value)">
+                        <option value="0" data-i18n="fresh.all">Toutes</option>
+                        <option value="1">&lt; 1h</option>
+                        <option value="2">&lt; 2h</option>
+                        <option value="3">&lt; 3h</option>
+                        <option value="5">&lt; 5h</option>
+                        <option value="10">&lt; 10h</option>
+                        <option value="24">&lt; 24h</option>
+                    </select>
+                </div>
+                <div class="tabs">
+                    <button class="tab-btn"              id="srcUex"   onclick="switchDataSource('uex')"   data-i18n="src.uex">UEX</button>
+                    <button class="tab-btn"              id="srcSf"    onclick="switchDataSource('sf')"    data-i18n="src.sf">SF</button>
+                    <button class="tab-btn active cross-active" id="srcCross" onclick="switchDataSource('cross')" data-i18n="src.cross">Croisé</button>
+                </div>
                 <div class="tabs">
                     <button class="tab-btn active" id="stockYield" onclick="switchStockMode('yield')" data-i18n="stock.yield">📈 Meilleur rendement</button>
                     <button class="tab-btn"         id="stockDispo" onclick="switchStockMode('dispo')" data-i18n="stock.dispo">📦 Stock dispo</button>
@@ -1069,7 +1096,12 @@ const S = {
     sortDir:-1,
     ship:null,
     mode:'simple',
-    stockMode:'yield',         // 'yield' = ignore stock | 'stock' = filtre stock dispo
+    stockMode:'yield',         // 'yield' = ignore stock | 'dispo' = filtre stock dispo
+    freshMaxH: 0,              // 0 = pas de filtre, sinon seuil en heures
+    dataSource:'cross',        // 'uex' | 'sf' | 'cross'
+    rawUexPrices: null,        // prix UEX bruts (avant merge SF)
+    sfOnlyPrices:  null,       // prix SF uniquement (format UEX)
+    crossPrices:   null,       // prix mergés SF+UEX
     startTerminalName: null,   // position actuelle forcée
 };
 
@@ -1101,12 +1133,14 @@ const TRANSLATIONS = {
     'results.tabSimple':'Trajets simples','results.tabCircuit':'⟳ Circuits',
     'card.setpos':'📍 Je suis ici','card.discord':'📋 Discord',
     'card.refresh':'🔄 Actualiser le stock','card.refreshTitle':'Vérifie le stock en temps réel avant d\'y aller',
-    'card.validate':'✅ Valider ce leg','card.validateTitle':'J\'ai fait ce trajet — contribuer aux données UEX',
-    'card.validateSimple':'J\'ai fait ce trade — contribue aux données UEX',
+    'card.validateBuy':'J\'ai acheté','card.validateBuyTitle':'J\'achète ici — sauvegarder le prix et le stock',
+    'card.validateSell':'J\'ai vendu','card.validateSellTitle':'Je vends ici — envoyer les données complètes',
     'card.stockLabel':'Stock dispo','card.sellLabel':'Capacité vente',
     'card.legBuy':'↓ achète','card.legSell':'↓ vend à',
     'card.step':'Étape','card.return':'Retour','card.circuit':'Circuit',
     'stock.yield':'📈 Meilleur rendement','stock.dispo':'📦 Stock dispo',
+    'src.uex':'UEX','src.sf':'SF','src.cross':'Croisé',
+    'fresh.all':'Toutes',
     'card.qty':'Qté','card.legProfit':'Profit leg',
     'refresh.checking':'⏳ Vérification…',
     'refresh.empty':'🚫 Stock vide — <strong>{commodity}</strong> épuisé à {terminal}',
@@ -1129,6 +1163,14 @@ const TRANSLATIONS = {
     'modal.err.handle':'⚠️ Handle RSI requis.','modal.err.buyPrice':'⚠️ Prix d\'achat invalide.',
     'modal.err.sellPrice':'⚠️ Prix de vente invalide.',
     'modal.err.scu':'⚠️ Stock restant requis (0 si épuisé).',
+    'modal.sellCap':'Capacité vente','modal.sellCapHint':'SCU que la station peut encore absorber',
+    'modal.titleBuy':'🛒 J\'ai acheté ici',
+    'modal.titleSell':'💰 J\'ai vendu ici',
+    'modal.saveBuy':'💾 Sauvegarder mon achat',
+    'modal.buyHint':'Tu compléteras la vente quand tu seras à destination',
+    'modal.buySaved':'✅ Achat sauvegardé — note le stock et envole-toi !',
+    'modal.buyPending':'Achat sauvegardé',
+    'modal.noBuyData':'Aucun achat sauvegardé — entre les prix manuellement',
     'modal.sendTo':'— Envoyer vers —',
     'modal.recommended':'★ Recommandé',
     'modal.submitSF':'Streamer Forge','modal.submitUEX':'UEX Corp','modal.submitBoth':'SF + UEX',
@@ -1194,12 +1236,14 @@ const TRANSLATIONS = {
     'results.tabSimple':'Simple routes','results.tabCircuit':'⟳ Circuits',
     'card.setpos':'📍 I\'m here','card.discord':'📋 Discord',
     'card.refresh':'🔄 Refresh stock','card.refreshTitle':'Check stock in real-time before going',
-    'card.validate':'✅ Validate leg','card.validateTitle':'I completed this route — contribute to UEX data',
-    'card.validateSimple':'I completed this trade — contribute to UEX data',
+    'card.validateBuy':'I bought','card.validateBuyTitle':'I\'m buying here — save price and stock',
+    'card.validateSell':'I sold','card.validateSellTitle':'I\'m selling here — send complete data',
     'card.stockLabel':'Available stock','card.sellLabel':'Sell capacity',
     'card.legBuy':'↓ buy','card.legSell':'↓ sell at',
     'card.step':'Step','card.return':'Return','card.circuit':'Circuit',
     'stock.yield':'📈 Best yield','stock.dispo':'📦 Stock available',
+    'src.uex':'UEX','src.sf':'SF','src.cross':'Cross',
+    'fresh.all':'All',
     'card.qty':'Qty','card.legProfit':'Leg profit',
     'refresh.checking':'⏳ Checking…',
     'refresh.empty':'🚫 Empty stock — <strong>{commodity}</strong> sold out at {terminal}',
@@ -1222,6 +1266,14 @@ const TRANSLATIONS = {
     'modal.err.handle':'⚠️ RSI Handle required.','modal.err.buyPrice':'⚠️ Invalid buy price.',
     'modal.err.sellPrice':'⚠️ Invalid sell price.',
     'modal.err.scu':'⚠️ Remaining stock required (0 if sold out).',
+    'modal.sellCap':'Sell capacity','modal.sellCapHint':'SCU the station can still absorb',
+    'modal.titleBuy':'🛒 I bought here',
+    'modal.titleSell':'💰 I sold here',
+    'modal.saveBuy':'💾 Save my purchase',
+    'modal.buyHint':'You\'ll complete the sale when you arrive at destination',
+    'modal.buySaved':'✅ Purchase saved — note the stock and fly out!',
+    'modal.buyPending':'Saved purchase',
+    'modal.noBuyData':'No saved purchase — enter prices manually',
     'modal.sendTo':'— Send to —',
     'modal.recommended':'★ Recommended',
     'modal.submitSF':'Streamer Forge','modal.submitUEX':'UEX Corp','modal.submitBoth':'SF + UEX',
@@ -1450,8 +1502,12 @@ async function loadData(){
 
     try{ localStorage.setItem(ckey, JSON.stringify({prices,comms,ts:Date.now()})); }catch{}
 
+    // ── Stocke les prix UEX bruts avant merge ────────────────────────
+    S.rawUexPrices = prices;
+
     // ── Merge avec les prix Streamer Forge (D1) ──────────────────────
-    prices = await mergeSFPrices(prices);
+    prices = await mergeSFPrices(prices);  // stocke aussi S.sfOnlyPrices
+    S.crossPrices = prices;
 
     return {prices,comms};
 }
@@ -1512,6 +1568,9 @@ async function mergeSFPrices(uexPrices){
             if(idx !== -1) merged[idx] = sfToUexFormat(sf, uex);
         }
     }
+
+    // Construire le jeu "SF only" : paires SF en format UEX, avec fallback UEX si manquant
+    S.sfOnlyPrices = sfData.map(sf => sfToUexFormat(sf, uexMap.get(`${sf.id_terminal}_${sf.id_commodity}`)));
 
     return merged;
 }
@@ -1574,6 +1633,9 @@ function calcRoutes(prices, comms, cfg){
 
                 // Mode stock : écarte les routes sans stock connu
                 if(cfg.stockMode === 'dispo' && buy.scu_buy === 0) continue;
+
+                // Mode fraîcheur : écarte les prix achat plus vieux que le seuil
+                if(cfg.freshMaxH > 0 && buy.date_modified && (Date.now()/1000 - buy.date_modified) > cfg.freshMaxH * 3600) continue;
 
                 // Quantité maximale achetable
                 const byBudget  = Math.floor(budget / buy.price_buy);
@@ -1661,6 +1723,7 @@ function buildCfg(scu){
         closedCircuit:document.getElementById('togClosed').checked,
         startTerminal:S.startTerminalName || null,
         stockMode:    S.stockMode,
+        freshMaxH:    S.freshMaxH,
     };
 }
 
@@ -1690,6 +1753,7 @@ async function calculate(){
         const routes = calcRoutes(prices, comms, cfg);
         const circuits = calcMultiHop(prices, comms, cfg);
         S.prices=prices; S.comms=comms; S.routes=routes; S.filtered=routes; S.circuits=circuits;
+        if(!S.crossPrices) S.crossPrices = prices; // fallback si non défini par le loader
         // Construire la liste des terminaux dès maintenant (autocomplete dispo avant recalcul)
         S.termNames = [...new Set(prices.map(p=>p.terminal_name).filter(Boolean))].sort();
 
@@ -1774,6 +1838,8 @@ function calcMultiHop(prices, comms, cfg){
                 if(profScu <= 0) continue;
                 // Mode stock : écarte les legs sans stock connu
                 if(cfg.stockMode === 'dispo' && buyP.scu_buy === 0) continue;
+                // Mode fraîcheur : écarte les prix achat plus vieux que le seuil
+                if(cfg.freshMaxH > 0 && buyP.date_modified && (Date.now()/1000 - buyP.date_modified) > cfg.freshMaxH * 3600) continue;
                 // Compare sur le profit TOTAL réel (pas juste /SCU) :
                 // tient compte du stock d'achat, capacité vente ET capacité vaisseau
                 const _scu       = cfg.scu || 1e6;
@@ -2022,13 +2088,16 @@ function renderMultiHop(chains){
                         ${T('card.refresh')}
                     </button>
                     <div id="legSt-${cIdx}-${i}" class="leg-status"></div>
-                    <button class="btn-validate btn-validate-leg" onclick="openValidateLeg(${cIdx},${i})"
-                            title="${T('card.validateTitle')}">
-                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;margin-right:4px">
-                            <circle cx="8" cy="8" r="7" stroke="#10b981" stroke-width="1.5"/>
-                            <path d="M4.5 8.5L6.8 11L11.5 5.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>${T('card.validate')}
-                    </button>
+                    <div class="leg-validate-btns">
+                        <button class="btn-validate btn-validate-buy" onclick="openBuyValidateLeg(${cIdx},${i})"
+                                title="${T('card.validateBuyTitle')}">
+                            🛒 ${T('card.validateBuy')}
+                        </button>
+                        <button class="btn-validate btn-validate-sell" onclick="openSellValidateLeg(${cIdx},${i})"
+                                title="${T('card.validateSellTitle')}">
+                            💰 ${T('card.validateSell')}
+                        </button>
+                    </div>
                 </div>` : '';
             return `<div class="mh-leg" style="${retStyle}">
                 ${stepLbl}
@@ -2083,6 +2152,21 @@ function renderMultiHop(chains){
 // ═══════════════════════════════════════════
 //  SWITCH TAB
 // ═══════════════════════════════════════════
+function onFreshChange(val){
+    S.freshMaxH = parseInt(val) || 0;
+    const sel = document.getElementById('freshMaxH');
+    if(sel) sel.classList.toggle('active', S.freshMaxH > 0);
+    if(S.prices?.length){
+        const cfg = buildCfg();
+        S.routes   = calcRoutes(S.prices, S.comms, cfg);
+        S.filtered = S.routes;
+        S.circuits = calcMultiHop(S.prices, S.comms, cfg);
+        document.getElementById('search').value = '';
+        if(S.mode==='simple') renderTable(S.routes);
+        else                  renderMultiHop(S.circuits);
+    }
+}
+
 function switchStockMode(mode){
     S.stockMode = mode;
     const yBtn = document.getElementById('stockYield');
@@ -2102,6 +2186,31 @@ function switchStockMode(mode){
         if(S.mode==='simple')  renderTable(S.routes);
         else                   renderMultiHop(S.circuits);
     }
+}
+
+function switchDataSource(src){
+    S.dataSource = src;
+    const uBtn = document.getElementById('srcUex');
+    const sBtn = document.getElementById('srcSf');
+    const cBtn = document.getElementById('srcCross');
+    [uBtn,sBtn,cBtn].forEach(b => b.classList.remove('active','sf-active','cross-active'));
+    if(src==='uex')        uBtn.classList.add('active');
+    else if(src==='sf')  { sBtn.classList.add('active','sf-active'); }
+    else                 { cBtn.classList.add('active','cross-active'); }
+
+    const priceSet = src==='uex'  ? (S.rawUexPrices  || S.prices)
+                   : src==='sf'   ? (S.sfOnlyPrices   || [])
+                   : (S.crossPrices || S.prices);
+
+    if(!priceSet?.length){ return; } // pas encore chargé ou SF vide
+    S.prices = priceSet;
+    const cfg = buildCfg();
+    S.routes   = calcRoutes(priceSet, S.comms, cfg);
+    S.filtered = S.routes;
+    S.circuits = calcMultiHop(priceSet, S.comms, cfg);
+    document.getElementById('search').value = '';
+    if(S.mode==='simple') renderTable(S.routes);
+    else                  renderMultiHop(S.circuits);
 }
 
 function switchTab(mode){
@@ -2174,12 +2283,10 @@ function renderTable(routes){
                 <div class="t-time">⏱ ~${fmtTime(tripMin)}</div>
                 <div class="t-aph">~${fmtAuec(aph)}/h</div>
             </td>
-            <td><button class="btn-validate" onclick="openValidate(${_ri})" title="${T('card.validateSimple')}">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="8" cy="8" r="7" stroke="#10b981" stroke-width="1.5"/>
-                    <path d="M4.5 8.5L6.8 11L11.5 5.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button></td>
+            <td style="white-space:nowrap">
+                <button class="btn-validate btn-validate-buy"  onclick="openBuyValidate(${_ri})"  title="${T('card.validateBuyTitle')}">🛒</button>
+                <button class="btn-validate btn-validate-sell" onclick="openSellValidate(${_ri})" title="${T('card.validateSellTitle')}">💰</button>
+            </td>
         </tr>`;
     }).join('');
 
@@ -2581,17 +2688,75 @@ async function refreshLeg(cIdx, lIdx){
 //  LABS : VALIDATION TRADE → RAPPORT UEX
 // ═══════════════════════════════════════════
 var _vCurrent = null;
+var _vModalMode = 'sell'; // 'buy' | 'sell'
 
-/** Ouvre la modal de validation pour un leg de circuit */
-function openValidateLeg(cIdx, lIdx){
+// ── Gestion du mode modal (achat vs vente) ───────────────────────────
+function setModalMode(mode){
+    _vModalMode = mode;
+    const isBuy = mode === 'buy';
+    // Champs
+    document.getElementById('vmBuyField').style.display     = isBuy ? '' : 'none';
+    document.getElementById('vmScuField').style.display     = isBuy ? '' : 'none';
+    document.getElementById('vmSellField').style.display    = isBuy ? 'none' : '';
+    document.getElementById('vmSellCapField').style.display = isBuy ? 'none' : '';
+    // Sections
+    document.getElementById('vmDrSection').style.display      = isBuy ? 'none' : '';
+    document.getElementById('vmBuySaveSection').style.display = isBuy ? '' : 'none';
+    document.getElementById('vmSendSection').style.display    = isBuy ? 'none' : '';
+    document.getElementById('vmSavedBuyInfo').style.display   = 'none'; // géré séparément
+    // Titre
+    document.getElementById('vmTitle').textContent = isBuy ? T('modal.titleBuy') : T('modal.titleSell');
+}
+
+function loadPendingBuy(termId, commId){
+    try{
+        const s = localStorage.getItem('sf_pending_buy');
+        if(!s) return null;
+        const d = JSON.parse(s);
+        if(d.id_terminal === termId && d.id_commodity === commId){
+            if(Date.now()/1000 - d.saved_at < 48*3600) return d;
+        }
+        return null;
+    }catch{ return null; }
+}
+
+function saveBuyData(){
+    const handle   = document.getElementById('vmHandle').value.trim();
+    const buyPrice = parseFloat(document.getElementById('vmBuyPrice').value);
+    const scu      = parseInt(document.getElementById('vmScu').value);
+    const msg      = document.getElementById('vmMsg');
+    if(!handle){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.handle'); return; }
+    if(!buyPrice||buyPrice<=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.buyPrice'); return; }
+    const r = _vCurrent;
+    const pending = {
+        id_terminal:       r.buyTermId,
+        id_commodity:      r.commodityId,
+        terminal_name:     r.buyTerminal,
+        commodity_name:    r.commodity,
+        commodity_code:    r.comCode || '',
+        price_buy:         buyPrice,
+        scu_remaining:     isNaN(scu) ? 0 : scu,
+        rsi_handle:        handle,
+        id_terminal_sell:  r.sellTermId,
+        terminal_name_sell:r.sellTerminal,
+        saved_at:          Math.floor(Date.now()/1000),
+    };
+    localStorage.setItem('sf_pending_buy', JSON.stringify(pending));
+    localStorage.setItem('sf_rsi_handle', handle);
+    msg.style.color  = 'var(--green)';
+    msg.textContent  = T('modal.buySaved');
+    setTimeout(closeValidate, 1800);
+}
+
+/** Construit l'objet _vCurrent depuis un leg de circuit */
+function _legToRoute(cIdx, lIdx){
     const chain = (window._vCircuits || [])[cIdx];
-    if(!chain) return;
+    if(!chain) return null;
     const leg = chain.legs[lIdx];
-    if(!leg || leg.isReturn) return;
-
-    // Convertit le leg au même format qu'une route simple
-    _vCurrent = {
+    if(!leg || leg.isReturn) return null;
+    return {
         commodity:    leg.commodity,
+        comCode:      leg.comCode || '',
         buyTerminal:  leg.fromName,
         sellTerminal: leg.toName,
         commodityId:  leg.commodityId,
@@ -2599,50 +2764,103 @@ function openValidateLeg(cIdx, lIdx){
         sellTermId:   leg.toTid,
         buyPrice:     leg.buyPrice,
         sellPrice:    leg.sellPrice,
+        stockCur:     leg.stockCur || 0,
         units:        leg.units,
         totalProfit:  leg.legProfit,
         _isLeg:       true,
         _legLabel:    `${T('card.circuit')} — ${T('card.step')} ${lIdx+1}`
     };
+}
 
-    // Pré-remplir la modal
-    document.getElementById('vmRoute').innerHTML =
-        `<strong style="color:var(--cyan)">${esc(_vCurrent._legLabel)}</strong><br>
-         ${esc(leg.commodity)} &nbsp;·&nbsp;
-         🏪 <strong>${esc(leg.fromName)}</strong> → <strong>${esc(leg.toName)}</strong><br>
-         📊 Qté : ${leg.units.toLocaleString()} SCU &nbsp;·&nbsp; Profit leg : <strong style="color:var(--green)">${fmtAuec(leg.legProfit)}</strong>`;
-
-    document.getElementById('vmBuyPrice').value  = leg.buyPrice;
-    document.getElementById('vmSellPrice').value = leg.sellPrice;
-    document.getElementById('vmScu').value        = Math.max(0, (leg.stockCur || 0) - (leg.units || 0));
-    document.getElementById('vmHandle').value     = localStorage.getItem('sf_rsi_handle') || '';
-    document.getElementById('vmMsg').textContent  = '';
-    document.getElementById('vmMsg').style.color  = '';
-    initModalCommon();
+function _openModal(){
+    document.getElementById('vmHandle').value    = localStorage.getItem('sf_rsi_handle') || '';
+    document.getElementById('vmMsg').textContent = '';
+    document.getElementById('vmMsg').style.color = '';
     document.getElementById('validateModal').style.display = 'flex';
 }
 
-function openValidate(idx){
+// ── Achat : circuit ──────────────────────────────────────────────────
+function openBuyValidateLeg(cIdx, lIdx){
+    _vCurrent = _legToRoute(cIdx, lIdx);
+    if(!_vCurrent) return;
+    const r = _vCurrent;
+    document.getElementById('vmRoute').innerHTML =
+        `<strong style="color:var(--cyan)">${esc(r._legLabel)}</strong><br>
+         ${esc(r.commodity)} &nbsp;·&nbsp; 🏪 <strong>${esc(r.buyTerminal)}</strong> → ${esc(r.sellTerminal)}<br>
+         📊 Qté : ${r.units.toLocaleString()} SCU`;
+    document.getElementById('vmBuyPrice').value = r.buyPrice;
+    document.getElementById('vmScu').value      = Math.max(0, (r.stockCur||0) - (r.units||0));
+    setModalMode('buy');
+    _openModal();
+}
+
+// ── Vente : circuit ──────────────────────────────────────────────────
+function openSellValidateLeg(cIdx, lIdx){
+    _vCurrent = _legToRoute(cIdx, lIdx);
+    if(!_vCurrent) return;
+    const r = _vCurrent;
+    document.getElementById('vmRoute').innerHTML =
+        `<strong style="color:var(--cyan)">${esc(r._legLabel)}</strong><br>
+         ${esc(r.commodity)} &nbsp;·&nbsp; 💰 vente à <strong>${esc(r.sellTerminal)}</strong><br>
+         📊 Profit leg : <strong style="color:var(--green)">${fmtAuec(r.totalProfit)}</strong>`;
+    document.getElementById('vmSellPrice').value = r.sellPrice;
+    _showSavedBuyInfo(r);
+    initModalCommon();
+    setModalMode('sell');
+    _openModal();
+}
+
+// ── Achat : route simple ─────────────────────────────────────────────
+function openBuyValidate(idx){
     _vCurrent = (window._vRoutes || [])[idx];
     if(!_vCurrent) return;
     const r = _vCurrent;
-
-    // Info route
     document.getElementById('vmRoute').innerHTML =
         `<strong>${esc(r.commodity)}</strong><br>
-         📦 Achat : <strong>${esc(r.buyTerminal)}</strong> — ${r.buyPrice.toLocaleString()} aUEC/SCU<br>
-         💰 Vente : <strong>${esc(r.sellTerminal)}</strong> — ${r.sellPrice.toLocaleString()} aUEC/SCU<br>
-         📊 Qté : ${r.units.toLocaleString()} SCU &nbsp;·&nbsp; Profit : <strong style="color:var(--green)">${fmtAuec(r.totalProfit)}</strong>`;
+         🛒 Achat à <strong>${esc(r.buyTerminal)}</strong> — ${r.buyPrice.toLocaleString()} aUEC/SCU<br>
+         → Vente prévue : ${esc(r.sellTerminal)}`;
+    document.getElementById('vmBuyPrice').value = r.buyPrice;
+    document.getElementById('vmScu').value      = Math.max(0, (r.stockCur||0) - (r.units||0));
+    setModalMode('buy');
+    _openModal();
+}
 
-    // Pré-remplir
-    document.getElementById('vmBuyPrice').value  = r.buyPrice;
+// ── Vente : route simple ─────────────────────────────────────────────
+function openSellValidate(idx){
+    _vCurrent = (window._vRoutes || [])[idx];
+    if(!_vCurrent) return;
+    const r = _vCurrent;
+    document.getElementById('vmRoute').innerHTML =
+        `<strong>${esc(r.commodity)}</strong><br>
+         💰 Vente à <strong>${esc(r.sellTerminal)}</strong><br>
+         Profit estimé : <strong style="color:var(--green)">${fmtAuec(r.totalProfit)}</strong>`;
     document.getElementById('vmSellPrice').value = r.sellPrice;
-    document.getElementById('vmScu').value        = Math.max(0, (r.stockCur || 0) - (r.units || 0));
-    document.getElementById('vmHandle').value      = localStorage.getItem('sf_rsi_handle') || '';
-    document.getElementById('vmMsg').textContent   = '';
-    document.getElementById('vmMsg').style.color   = '';
+    document.getElementById('vmSellCap').value   = r.sellCur || 0;
+    _showSavedBuyInfo(r);
     initModalCommon();
-    document.getElementById('validateModal').style.display = 'flex';
+    setModalMode('sell');
+    _openModal();
+}
+
+/** Affiche les infos d'achat sauvegardées (mode vente) */
+function _showSavedBuyInfo(r){
+    const saved = loadPendingBuy(r.buyTermId, r.commodityId);
+    const el    = document.getElementById('vmSavedBuyInfo');
+    if(saved){
+        const ago = Math.floor((Date.now()/1000 - saved.saved_at)/60);
+        el.innerHTML = `✅ <strong>${T('modal.buyPending')}</strong> — ${saved.terminal_name} · ${saved.price_buy.toLocaleString()} aUEC/SCU · stock restant : ${saved.scu_remaining} SCU <span style="opacity:.5">(il y a ${ago}min)</span>`;
+        el.style.display = '';
+        // Cacher les champs buy dans la grille — ils seront chargés depuis le pending
+        document.getElementById('vmBuyPrice').value = saved.price_buy;
+        document.getElementById('vmScu').value      = saved.scu_remaining;
+    } else {
+        el.innerHTML = `⚠️ ${T('modal.noBuyData')}`;
+        el.style.color = 'var(--amber)';
+        el.style.display = '';
+        // Pas de données sauvegardées → afficher les champs buy pour saisie manuelle
+        document.getElementById('vmBuyField').style.display = '';
+        document.getElementById('vmScuField').style.display = '';
+    }
 }
 
 function initModalCommon(){
@@ -2664,10 +2882,13 @@ function closeValidate(){
 async function submitValidate(target = 'both'){
     const r        = _vCurrent;
     const handle   = document.getElementById('vmHandle').value.trim();
-    const buyPrice = parseFloat(document.getElementById('vmBuyPrice').value);
     const sellPrice= parseFloat(document.getElementById('vmSellPrice').value);
-    const scu      = parseInt(document.getElementById('vmScu').value);
     const msg      = document.getElementById('vmMsg');
+
+    // Charger les données achat : depuis le pending localStorage ou depuis les champs
+    const pending  = loadPendingBuy(r.buyTermId, r.commodityId);
+    const buyPrice = pending ? pending.price_buy     : parseFloat(document.getElementById('vmBuyPrice').value);
+    const scu      = pending ? pending.scu_remaining : parseInt(document.getElementById('vmScu').value);
 
     const uexKey = (document.getElementById('vmUexKey')?.value.trim()) || localStorage.getItem('sf_uex_key') || '';
 
@@ -2692,7 +2913,6 @@ async function submitValidate(target = 'both'){
     localStorage.setItem('sf_rsi_handle', handle);
     if(uexKey) localStorage.setItem('sf_uex_key', uexKey);
 
-    btn.disabled = true;
     msg.style.color = 'var(--text-2)';
     msg.textContent = '⏳ Envoi en cours…';
 
@@ -2722,7 +2942,8 @@ async function submitValidate(target = 'both'){
 
         const sfH = {'Content-Type':'application/json'};
         const sfPayloadBuy  = { id_terminal:r.buyTermId,  id_commodity:r.commodityId, terminal_name:r.buyTerminal,  commodity_name:r.commodity, commodity_code:r.comCode||'', price_buy:buyPrice,  scu_buy:scu,  rsi_handle:handle };
-        const sfPayloadSell = { id_terminal:r.sellTermId, id_commodity:r.commodityId, terminal_name:r.sellTerminal, commodity_name:r.commodity, commodity_code:r.comCode||'', price_sell:sellPrice, rsi_handle:handle };
+        const sellCap = parseInt(document.getElementById('vmSellCap')?.value) || 0;
+        const sfPayloadSell = { id_terminal:r.sellTermId, id_commodity:r.commodityId, terminal_name:r.sellTerminal, commodity_name:r.commodity, commodity_code:r.comCode||'', price_sell:sellPrice, scu_sell:sellCap, rsi_handle:handle };
 
         // ── SF ───────────────────────────────────────────────────────
         if((target === 'sf' || target === 'both') && location.protocol !== 'file:'){
@@ -2821,21 +3042,20 @@ Sur les <strong>circuits</strong>, clique <span class="hl-cyan">🔄 Actualiser 
     tipColor: 'cyan'
   },
   {
-    icon: '✅',
+    icon: '🛒',
     label: 'Étape 5 sur 6 — LA PLUS IMPORTANTE',
-    title: 'Valide ton trade après chaque trajet',
-    desc: `Une fois le trade effectué en jeu, reviens sur l'outil et clique le bouton <span class="hl-green">✅</span> sur la route ou l'étape que tu viens de faire.<br><br>
-Le formulaire te demande :<br>
-<strong>• Handle RSI</strong> — Ton pseudo Star Citizen (sauvegardé automatiquement)<br>
-<strong>• Prix achat réel</strong> — Ce que tu as payé en jeu<br>
-<strong>• Prix vente réel</strong> — Ce que tu as encaissé<br>
-<strong>• Stock restant</strong> — Ce que tu as vu au terminal après ton achat<br><br>
-En bas du formulaire, choisis <strong>où envoyer tes données</strong> :<br>
-<span style="color:var(--purple)">■ Streamer Forge</span> — Alimente la base de données communautaire SF<br>
-<span style="color:#0ea5e9">■ UEX Corp</span> — Envoie directement à UEX (clé secrète requise)<br>
-<span style="color:var(--green)">■ SF + UEX ★</span> — Envoie aux deux à la fois <strong>(recommandé)</strong><br><br>
-<span style="color:var(--purple)">⚡ Section DataRunner</span> — Entre ta clé secrète UEX pour soumettre sous ton propre compte. Tes reports te créditent de la réputation sur UEX Corp.`,
-    tip: '🌟 SF + UEX enrichit les deux bases de données simultanément — c\'est l\'option qui bénéficie le plus à toute la communauté.',
+    title: 'Valide ton trade en 2 étapes',
+    desc: `La validation se fait en <strong>deux temps</strong> distincts, directement depuis les terminaux en jeu.<br><br>
+<span class="hl-green">🛒 Au terminal d'achat</span> — Clique le bouton vert sur la route ou le leg de circuit. Le formulaire te demande :<br>
+<strong>• Handle RSI</strong> — Ton pseudo Star Citizen (sauvegardé auto)<br>
+<strong>• Prix d'achat</strong> — Ce que tu as payé par SCU<br>
+<strong>• Stock restant</strong> — Ce que tu vois au terminal après ton achat<br>
+→ Clique <strong>💾 Sauvegarder mon achat</strong>. Aucune connexion requise, c'est sauvegardé localement.<br><br>
+<span class="hl-cyan">💰 Au terminal de vente</span> — Clique le bouton bleu. Tes données d'achat se chargent automatiquement. Ajoute :<br>
+<strong>• Prix de vente</strong> — Ce que tu as encaissé par SCU<br>
+<strong>• Capacité vente</strong> — Stock que la station pouvait encore absorber<br>
+→ Choisis où envoyer : <span style="color:var(--purple)">SF</span> · <span style="color:#0ea5e9">UEX</span> · <span style="color:var(--green)">SF + UEX ★</span> <strong>(recommandé)</strong>`,
+    tip: '💡 Tu as oublié de valider l\'achat ? Le formulaire de vente affiche tous les champs pour une saisie manuelle complète.',
     tipColor: 'green'
   },
   {
@@ -2847,8 +3067,8 @@ En bas du formulaire, choisis <strong>où envoyer tes données</strong> :<br>
 <span class="hl-cyan">2.</span> Calcule les routes ou circuits<br>
 <span class="hl-cyan">3.</span> Sur un circuit : <strong>actualise le stock</strong> de l'étape suivante avant de partir<br>
 <span class="hl-cyan">4.</span> Fais le trade en jeu<br>
-<span class="hl-cyan">5.</span> <span class="hl-green">Valide le trajet</span> — prix réels + stock observé<br>
-<span class="hl-cyan">6.</span> Répète pour chaque étape<br><br>
+<span class="hl-cyan">5.</span> <span class="hl-green">🛒 Valide l'achat</span> au départ — prix + stock restant<br>
+<span class="hl-cyan">6.</span> <span class="hl-cyan">💰 Valide la vente</span> à l'arrivée — prix vente + capacité<br><br>
 Le bouton <strong>❓ Guide</strong> dans le header te ramène ici à tout moment.`,
     tip: '🙏 Merci de faire partie de la communauté Streamer Forge. Chaque validation compte !',
     tipColor: 'green'
@@ -2897,20 +3117,19 @@ On <strong>circuits</strong>, click <span class="hl-cyan">🔄 Refresh stock</sp
     tipColor: 'cyan'
   },
   {
-    icon: '✅', label: 'Step 5 of 6 — MOST IMPORTANT',
-    title: 'Validate your trade after each run',
-    desc: `Once the trade is done in-game, come back to the tool and click the <span class="hl-green">✅</span> button on the route or step you just completed.<br><br>
-The form asks for:<br>
+    icon: '🛒', label: 'Step 5 of 6 — MOST IMPORTANT',
+    title: 'Validate your trade in 2 steps',
+    desc: `Validation happens in <strong>two distinct moments</strong>, straight from in-game terminals.<br><br>
+<span class="hl-green">🛒 At the buy terminal</span> — Click the green button on the route or circuit leg. The form asks for:<br>
 <strong>• RSI Handle</strong> — Your Star Citizen username (saved automatically)<br>
-<strong>• Actual buy price</strong> — What you paid in-game<br>
-<strong>• Actual sell price</strong> — What you received<br>
-<strong>• Remaining stock</strong> — What you saw at the terminal after your purchase<br><br>
-At the bottom, choose <strong>where to send your data</strong>:<br>
-<span style="color:var(--purple)">■ Streamer Forge</span> — Feeds the SF community database<br>
-<span style="color:#0ea5e9">■ UEX Corp</span> — Sends directly to UEX (secret key required)<br>
-<span style="color:var(--green)">■ SF + UEX ★</span> — Sends to both at once <strong>(recommended)</strong><br><br>
-<span style="color:var(--purple)">⚡ DataRunner section</span> — Enter your UEX secret key to submit under your own account. Your reports earn you reputation on UEX Corp.`,
-    tip: '🌟 SF + UEX feeds both databases at once — it\'s the option that benefits the entire community the most.',
+<strong>• Buy price</strong> — What you paid per SCU<br>
+<strong>• Remaining stock</strong> — What you see at the terminal after your purchase<br>
+→ Click <strong>💾 Save my purchase</strong>. No connection needed — stored locally on your device.<br><br>
+<span class="hl-cyan">💰 At the sell terminal</span> — Click the blue button. Your buy data loads automatically. Add:<br>
+<strong>• Sell price</strong> — What you received per SCU<br>
+<strong>• Sell capacity</strong> — How many SCU the station could still absorb<br>
+→ Choose where to send: <span style="color:var(--purple)">SF</span> · <span style="color:#0ea5e9">UEX</span> · <span style="color:var(--green)">SF + UEX ★</span> <strong>(recommended)</strong>`,
+    tip: '💡 Forgot to validate the purchase? The sell form shows all fields for full manual entry.',
     tipColor: 'green'
   },
   {
@@ -2921,8 +3140,8 @@ At the bottom, choose <strong>where to send your data</strong>:<br>
 <span class="hl-cyan">2.</span> Calculate routes or circuits<br>
 <span class="hl-cyan">3.</span> On a circuit: <strong>refresh stock</strong> on the next step before leaving<br>
 <span class="hl-cyan">4.</span> Do the trade in-game<br>
-<span class="hl-cyan">5.</span> <span class="hl-green">Validate the run</span> — real prices + observed stock<br>
-<span class="hl-cyan">6.</span> Repeat for each step<br><br>
+<span class="hl-cyan">5.</span> <span class="hl-green">🛒 Validate the purchase</span> at departure — price + remaining stock<br>
+<span class="hl-cyan">6.</span> <span class="hl-cyan">💰 Validate the sale</span> on arrival — sell price + capacity<br><br>
 The <strong>❓ Guide</strong> button in the header brings you back here anytime.`,
     tip: '🙏 Thank you for being part of the Streamer Forge community. Every validation counts!',
     tipColor: 'green'
@@ -3011,13 +3230,16 @@ if(!localStorage.getItem('sf_tuto_done')){
 <!-- ── MODAL VALIDATION TRADE ── -->
 <div class="modal-overlay" id="validateModal" style="display:none" onclick="if(event.target===this)closeValidate()">
     <div class="modal-box">
-        <div class="modal-title" data-i18n="modal.title">✅ Valider ce trade</div>
+        <div class="modal-title" id="vmTitle">✅ Valider ce trade</div>
         <div class="modal-route" id="vmRoute"></div>
         <div class="modal-handle">
             <label class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.8px">Handle RSI <span style="color:var(--red)">*</span></label>
             <input type="text" id="vmHandle" data-i18n-placeholder="modal.handlePlaceholder" placeholder="Ton handle RSI (ex: Vinyle)" style="font-size:12px">
             <div style="font-size:10px;color:var(--text-3);margin-top:3px" data-i18n="modal.handleHint">Sauvegardé localement — utilisé pour la traçabilité des rapports.</div>
         </div>
+        <!-- Achat sauvegardé (mode vente uniquement) -->
+        <div id="vmSavedBuyInfo" class="vm-saved-buy" style="display:none"></div>
+        <!-- DataRunner (mode vente uniquement) -->
         <details class="modal-datarunner" id="vmDrSection" open>
             <summary style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;color:var(--purple);user-select:none" data-i18n="modal.drToggle">⚡ DataRunner — utilise ta propre clé UEX</summary>
             <div style="margin-top:8px">
@@ -3028,15 +3250,19 @@ if(!localStorage.getItem('sf_tuto_done')){
         </details>
         <div style="font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px" data-i18n="modal.pricesConfirm">Confirme les prix réels observés en jeu</div>
         <div class="modal-grid">
-            <div class="modal-field">
+            <div class="modal-field" id="vmBuyField">
                 <label data-i18n="modal.buyPrice">Prix achat/SCU</label>
                 <input type="number" id="vmBuyPrice" min="0" step="0.01" style="font-size:12px">
             </div>
-            <div class="modal-field">
+            <div class="modal-field" id="vmSellField">
                 <label data-i18n="modal.sellPrice">Prix vente/SCU</label>
                 <input type="number" id="vmSellPrice" min="0" step="0.01" style="font-size:12px">
             </div>
-            <div class="modal-field">
+            <div class="modal-field" id="vmSellCapField">
+                <label><span data-i18n="modal.sellCap">Capacité vente</span><br><span style="font-size:9px;opacity:.7;text-transform:none;letter-spacing:0" data-i18n="modal.sellCapHint">SCU que la station peut encore absorber</span></label>
+                <input type="number" id="vmSellCap" min="0" step="1" placeholder="0" style="font-size:12px">
+            </div>
+            <div class="modal-field" id="vmScuField">
                 <label><span data-i18n="modal.stockRemaining">Stock restant</span> <span style="color:var(--red)">*</span><br><span style="font-size:9px;opacity:.7;text-transform:none;letter-spacing:0" data-i18n="modal.afterPurchase">après ton achat</span></label>
                 <input type="number" id="vmScu" min="0" step="1" data-i18n-placeholder="modal.scuPlaceholder" placeholder="SCU restants" style="font-size:12px">
             </div>
@@ -3045,7 +3271,13 @@ if(!localStorage.getItem('sf_tuto_done')){
         <div class="modal-actions">
             <button class="btn-modal-cancel" onclick="closeValidate()" data-i18n="modal.cancel">Annuler</button>
         </div>
-        <div class="modal-send-section">
+        <!-- Mode achat : bouton sauvegarder -->
+        <div id="vmBuySaveSection" style="display:none; margin-top:10px; border-top:1px solid var(--border-hi); padding-top:10px;">
+            <div style="text-align:center;font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px" data-i18n="modal.buyHint">Tu compléteras la vente quand tu seras à destination</div>
+            <button class="btn-modal-submit btn-sf" style="width:100%" onclick="saveBuyData()" data-i18n="modal.saveBuy">💾 Sauvegarder mon achat</button>
+        </div>
+        <!-- Mode vente : 3 boutons envoi -->
+        <div class="modal-send-section" id="vmSendSection">
             <div class="modal-send-label" data-i18n="modal.sendTo">— Envoyer vers —</div>
             <div class="modal-send-btns">
                 <button class="btn-modal-submit btn-sf"   id="vmSubmitSF"   onclick="submitValidate('sf')"   data-i18n="modal.submitSF">Streamer Forge</button>
