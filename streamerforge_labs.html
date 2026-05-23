@@ -2348,12 +2348,15 @@ async function submitValidate(){
             const failResp = !rBuy.ok ? jBuy : jSell;
             const rawErr   = failResp.message || failResp.error || failResp.status || JSON.stringify(failResp).slice(0,120);
             const httpErr  = `HTTP ${rBuy.ok ? rSell.status : rBuy.status}`;
-            // Message lisible : si UEX réclame un screenshot → explication claire
+            // Message lisible selon le type d'erreur UEX
+            const isNotAllowed = failResp.status === 'not_allowed';
             const needsScreenshot = rawErr && rawErr.toLowerCase().includes('screenshot');
             msg.style.color = 'var(--red)';
-            msg.textContent = needsScreenshot
-                ? '⚠️ UEX exige une capture d\'écran pour les nouveaux contributeurs (période d\'évaluation 90j). Fonctionnalité non disponible dans l\'app.'
-                : `⚠️ Erreur UEX : ${rawErr || httpErr}`;
+            msg.textContent = isNotAllowed
+                ? '⏳ Compte en période d\'évaluation UEX (90j) — soumets quelques rapports sur uexcorp.space pour débloquer la contribution automatique.'
+                : needsScreenshot
+                    ? '⚠️ UEX exige une capture d\'écran — soumets manuellement sur uexcorp.space/data.'
+                    : `⚠️ Erreur UEX : ${rawErr || httpErr}`;
             btn.disabled = false;
         }
     }catch(e){
