@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.streamerforge.com/sitemap.xml
+Sitemap: https://streamerforge.com/sitemap.xml
