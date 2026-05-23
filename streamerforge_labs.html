@@ -579,12 +579,21 @@
         .modal-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-bottom: 12px; align-items: end; }
         .modal-field label { display: block; font-size: 10px; color: var(--text-2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .8px; }
         .modal-handle { margin-bottom: 12px; }
-        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+        .modal-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
         .btn-modal-cancel { padding: 7px 14px; background: none; border: 1px solid var(--border-hi); color: var(--text-2); border-radius: 5px; cursor: pointer; font-size: 12px; }
         .btn-modal-cancel:hover { border-color: var(--text-2); }
-        .btn-modal-submit { padding: 7px 18px; background: linear-gradient(90deg,#10b981,#059669); border: none; color: #fff; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 700; }
+        .modal-send-section { margin-top: 10px; border-top: 1px solid var(--border-hi); padding-top: 10px; }
+        .modal-send-label { text-align: center; font-size: 10px; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .modal-send-btns  { display: flex; gap: 8px; align-items: flex-end; }
+        .btn-modal-submit { flex: 1; padding: 9px 8px; border: none; color: #fff; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 700; text-align: center; }
+        .btn-recommended-wrap { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+        .btn-recommended-badge { text-align: center; font-size: 9px; color: var(--green); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .btn-recommended-wrap .btn-modal-submit { flex: unset; width: 100%; }
         .btn-modal-submit:hover { opacity: .88; }
-        .btn-modal-submit:disabled { opacity: .45; cursor: not-allowed; }
+        .btn-modal-submit:disabled { opacity: .35; cursor: not-allowed; }
+        .btn-sf   { background: linear-gradient(90deg,#7c3aed,#6d28d9); }
+        .btn-uex  { background: linear-gradient(90deg,#0ea5e9,#0284c7); }
+        .btn-both { background: linear-gradient(90deg,#10b981,#059669); }
         .btn-validate {
             background: none;
             border: 1px solid rgba(16,185,129,.35);
@@ -1120,8 +1129,14 @@ const TRANSLATIONS = {
     'modal.err.handle':'⚠️ Handle RSI requis.','modal.err.buyPrice':'⚠️ Prix d\'achat invalide.',
     'modal.err.sellPrice':'⚠️ Prix de vente invalide.',
     'modal.err.scu':'⚠️ Stock restant requis (0 si épuisé).',
-    'modal.success':'✅ Rapport envoyé à UEX + base SF — merci !','modal.submitted':'✅ Envoyé',
-    'modal.successSfOnly':'✅ Sauvegardé dans la base Streamer Forge ! Ajoute ta clé UEX pour contribuer aussi à UEX.',
+    'modal.sendTo':'— Envoyer vers —',
+    'modal.recommended':'★ Recommandé',
+    'modal.submitSF':'Streamer Forge','modal.submitUEX':'UEX Corp','modal.submitBoth':'SF + UEX',
+    'modal.success':'✅ Envoyé — merci pour ta contribution !','modal.submitted':'✅ Envoyé',
+    'modal.successSfOnly':'✅ Sauvegardé dans la base Streamer Forge !',
+    'modal.successUEX':'✅ Envoyé à UEX — merci !',
+    'modal.successBoth':'✅ Envoyé à SF + UEX — merci !',
+    'modal.err.uexKeyNeeded':'⚠️ Clé UEX requise — ouvre la section DataRunner.',
     'modal.err.evaluation':'⏳ Compte en période d\'évaluation UEX (90j) — soumets quelques rapports sur uexcorp.space pour débloquer la contribution automatique.',
     'modal.err.screenshot':'⚠️ UEX exige une capture d\'écran — soumets manuellement sur uexcorp.space/data.',
     'modal.err.network':'⚠️ Erreur réseau : {msg}','modal.err.uex':'⚠️ Erreur UEX : {msg}',
@@ -1207,8 +1222,14 @@ const TRANSLATIONS = {
     'modal.err.handle':'⚠️ RSI Handle required.','modal.err.buyPrice':'⚠️ Invalid buy price.',
     'modal.err.sellPrice':'⚠️ Invalid sell price.',
     'modal.err.scu':'⚠️ Remaining stock required (0 if sold out).',
-    'modal.success':'✅ Report sent to UEX + SF database — thank you!','modal.submitted':'✅ Sent',
-    'modal.successSfOnly':'✅ Saved to Streamer Forge database! Add your UEX key to also contribute to UEX.',
+    'modal.sendTo':'— Send to —',
+    'modal.recommended':'★ Recommended',
+    'modal.submitSF':'Streamer Forge','modal.submitUEX':'UEX Corp','modal.submitBoth':'SF + UEX',
+    'modal.success':'✅ Sent — thank you!','modal.submitted':'✅ Sent',
+    'modal.successSfOnly':'✅ Saved to Streamer Forge database!',
+    'modal.successUEX':'✅ Sent to UEX — thank you!',
+    'modal.successBoth':'✅ Sent to SF + UEX — thank you!',
+    'modal.err.uexKeyNeeded':'⚠️ UEX key required — open the DataRunner section.',
     'modal.err.evaluation':'⏳ UEX account in evaluation period (90 days) — submit a few reports on uexcorp.space to unlock automatic contribution.',
     'modal.err.screenshot':'⚠️ UEX requires a screenshot — submit manually on uexcorp.space/data.',
     'modal.err.network':'⚠️ Network error: {msg}','modal.err.uex':'⚠️ UEX error: {msg}',
@@ -2597,8 +2618,6 @@ function openValidateLeg(cIdx, lIdx){
     document.getElementById('vmHandle').value     = localStorage.getItem('sf_rsi_handle') || '';
     document.getElementById('vmMsg').textContent  = '';
     document.getElementById('vmMsg').style.color  = '';
-    document.getElementById('vmSubmit').disabled  = false;
-    document.getElementById('vmSubmit').textContent = T('modal.submit');
     initModalCommon();
     document.getElementById('validateModal').style.display = 'flex';
 }
@@ -2622,8 +2641,6 @@ function openValidate(idx){
     document.getElementById('vmHandle').value      = localStorage.getItem('sf_rsi_handle') || '';
     document.getElementById('vmMsg').textContent   = '';
     document.getElementById('vmMsg').style.color   = '';
-    document.getElementById('vmSubmit').disabled   = false;
-    document.getElementById('vmSubmit').textContent = T('modal.submit');
     initModalCommon();
     document.getElementById('validateModal').style.display = 'flex';
 }
@@ -2644,21 +2661,32 @@ function closeValidate(){
     _vCurrent = null;
 }
 
-async function submitValidate(){
+async function submitValidate(target = 'both'){
     const r        = _vCurrent;
     const handle   = document.getElementById('vmHandle').value.trim();
     const buyPrice = parseFloat(document.getElementById('vmBuyPrice').value);
     const sellPrice= parseFloat(document.getElementById('vmSellPrice').value);
     const scu      = parseInt(document.getElementById('vmScu').value);
     const msg      = document.getElementById('vmMsg');
-    const btn      = document.getElementById('vmSubmit');
 
     const uexKey = (document.getElementById('vmUexKey')?.value.trim()) || localStorage.getItem('sf_uex_key') || '';
 
-    if(!handle)               { msg.style.color='var(--red)'; msg.textContent=T('modal.err.handle'); return; }
+    // Validation des champs communs
+    if(!handle)                   { msg.style.color='var(--red)'; msg.textContent=T('modal.err.handle'); return; }
     if(!buyPrice  || buyPrice <=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.buyPrice'); return; }
     if(!sellPrice || sellPrice<=0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.sellPrice'); return; }
-    if(isNaN(scu) || scu < 0){ msg.style.color='var(--red)'; msg.textContent=T('modal.err.scu'); return; }
+    if(isNaN(scu) || scu < 0)    { msg.style.color='var(--red)'; msg.textContent=T('modal.err.scu'); return; }
+
+    // Clé UEX requise pour UEX et les deux
+    if((target === 'uex' || target === 'both') && !uexKey){
+        msg.style.color='var(--red)'; msg.textContent=T('modal.err.uexKeyNeeded');
+        document.getElementById('vmDrSection').open=true; return;
+    }
+
+    // Désactiver les 3 boutons
+    ['vmSubmitSF','vmSubmitUEX','vmSubmitBoth'].forEach(id => {
+        const el = document.getElementById(id); if(el) el.disabled = true;
+    });
 
     // Sauvegarder handle et clé UEX
     localStorage.setItem('sf_rsi_handle', handle);
@@ -2692,52 +2720,35 @@ async function submitValidate(){
             details: `RSI: ${handle}`
         };
 
-        const endpoint = `${API}/data_submit`;
-        const fetchHeaders = { 'Content-Type': 'application/json' };
-        if(uexKey) fetchHeaders['x-user-key'] = uexKey;
+        const sfH = {'Content-Type':'application/json'};
+        const sfPayloadBuy  = { id_terminal:r.buyTermId,  id_commodity:r.commodityId, terminal_name:r.buyTerminal,  commodity_name:r.commodity, commodity_code:r.comCode||'', price_buy:buyPrice,  scu_buy:scu,  rsi_handle:handle };
+        const sfPayloadSell = { id_terminal:r.sellTermId, id_commodity:r.commodityId, terminal_name:r.sellTerminal, commodity_name:r.commodity, commodity_code:r.comCode||'', price_sell:sellPrice, rsi_handle:handle };
 
-        // Envoi SF (D1) en parallèle — silencieux si échec
-        const sfPayloadBuy = {
-            id_terminal: r.buyTermId, id_commodity: r.commodityId,
-            terminal_name: r.buyTerminal, commodity_name: r.commodity,
-            commodity_code: r.comCode || '',
-            price_buy: buyPrice, scu_buy: scu, rsi_handle: handle
-        };
-        const sfPayloadSell = {
-            id_terminal: r.sellTermId, id_commodity: r.commodityId,
-            terminal_name: r.sellTerminal, commodity_name: r.commodity,
-            commodity_code: r.comCode || '',
-            price_sell: sellPrice, rsi_handle: handle
-        };
-        // ── Envoi SF D1 (toujours, pas besoin de clé UEX) ──────────────
-        if(location.protocol !== 'file:'){
-            Promise.all([
-                fetch(`${SF_API}/report`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sfPayloadBuy)  }),
-                fetch(`${SF_API}/report`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sfPayloadSell) }),
+        // ── SF ───────────────────────────────────────────────────────
+        if((target === 'sf' || target === 'both') && location.protocol !== 'file:'){
+            await Promise.all([
+                fetch(`${SF_API}/report`, {method:'POST',headers:sfH,body:JSON.stringify(sfPayloadBuy)}),
+                fetch(`${SF_API}/report`, {method:'POST',headers:sfH,body:JSON.stringify(sfPayloadSell)}),
             ]).catch(()=>{});
+            if(target === 'sf'){
+                msg.style.color='var(--green)'; msg.textContent=T('modal.successSfOnly');
+                setTimeout(closeValidate,2500); return;
+            }
         }
 
-        // ── Envoi UEX (seulement si clé perso présente) ─────────────
-        if(!uexKey){
-            msg.style.color = 'var(--green)';
-            msg.textContent = T('modal.successSfOnly');
-            btn.textContent = T('modal.submitted');
-            setTimeout(closeValidate, 2500);
-            return;
-        }
-
+        // ── UEX ──────────────────────────────────────────────────────
+        const endpoint = `${API}/data_submit`;
+        const fetchHeaders = {'Content-Type':'application/json','x-user-key':uexKey};
         const [rBuy, rSell] = await Promise.all([
-            fetch(endpoint, { method:'POST', headers: fetchHeaders, body: JSON.stringify(buyPayload) }),
-            fetch(endpoint, { method:'POST', headers: fetchHeaders, body: JSON.stringify(sellPayload) })
+            fetch(endpoint, {method:'POST',headers:fetchHeaders,body:JSON.stringify(buyPayload)}),
+            fetch(endpoint, {method:'POST',headers:fetchHeaders,body:JSON.stringify(sellPayload)}),
         ]);
-
         const jBuy  = await rBuy.json().catch(()=>({}));
         const jSell = await rSell.json().catch(()=>({}));
 
         if(rBuy.ok && rSell.ok){
             msg.style.color = 'var(--green)';
-            msg.textContent = T('modal.success');
-            btn.textContent = T('modal.submitted');
+            msg.textContent = target === 'both' ? T('modal.successBoth') : T('modal.successUEX');
             setTimeout(closeValidate, 2500);
         } else {
             const failResp = !rBuy.ok ? jBuy : jSell;
@@ -2751,12 +2762,12 @@ async function submitValidate(){
                 : needsScreenshot
                     ? T('modal.err.screenshot')
                     : T('modal.err.uex',{msg: rawErr || httpErr});
-            btn.disabled = false;
+            ['vmSubmitSF','vmSubmitUEX','vmSubmitBoth'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
         }
     }catch(e){
         msg.style.color = 'var(--red)';
         msg.textContent = T('modal.err.network',{msg:e.message});
-        btn.disabled = false;
+        ['vmSubmitSF','vmSubmitUEX','vmSubmitBoth'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
     }
 }
 </script>
@@ -3027,7 +3038,17 @@ if(!localStorage.getItem('sf_tuto_done')){
         <div class="modal-msg" id="vmMsg"></div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" onclick="closeValidate()" data-i18n="modal.cancel">Annuler</button>
-            <button class="btn-modal-submit" id="vmSubmit" onclick="submitValidate()" data-i18n="modal.submit">📤 Envoyer à UEX</button>
+        </div>
+        <div class="modal-send-section">
+            <div class="modal-send-label" data-i18n="modal.sendTo">— Envoyer vers —</div>
+            <div class="modal-send-btns">
+                <button class="btn-modal-submit btn-sf"   id="vmSubmitSF"   onclick="submitValidate('sf')"   data-i18n="modal.submitSF">Streamer Forge</button>
+                <button class="btn-modal-submit btn-uex"  id="vmSubmitUEX"  onclick="submitValidate('uex')"  data-i18n="modal.submitUEX">UEX Corp</button>
+                <div class="btn-recommended-wrap">
+                    <span class="btn-recommended-badge" data-i18n="modal.recommended">★ Recommandé</span>
+                    <button class="btn-modal-submit btn-both" id="vmSubmitBoth" onclick="submitValidate('both')" data-i18n="modal.submitBoth">SF + UEX</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
