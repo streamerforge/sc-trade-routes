@@ -1394,13 +1394,12 @@ function setLang(lang){
     applyLang();
 }
 
-// En local (file://) → appel direct UEX ; sur le site déployé → proxy Cloudflare
-const API = (location.protocol === 'file:' || location.hostname === 'localhost')
-    ? 'https://api.uexcorp.uk/2.0'
-    : '/api/uex';
+// En local (file://) → appel direct UEX ; sur le site déployé (wrangler ou Cloudflare) → proxy
+const IS_LOCAL = location.protocol === 'file:';
+const API      = IS_LOCAL ? 'https://api.uexcorp.uk/2.0' : '/api/uex';
 const SF_API = '/api/sf';
-const CACHE_MS      = 5 * 60 * 1000;   // cache Stanton : 5 min
-const CACHE_SYS_MS  = 60 * 60 * 1000;  // cache systèmes non-Stanton (Pyro, Nyx) : 1h
+const CACHE_MS      = 15 * 60 * 1000;  // cache Stanton + Pyro : 15 min
+const CACHE_SYS_MS  = 60 * 60 * 1000;  // cache Nyx : 1h (98 terminaux = ~60s à charger)
 
 // ═══════════════════════════════════════════
 //  INIT
@@ -1477,180 +1476,191 @@ async function apiFetch(endpoint){
 }
 
 async function loadData(){
-    const ckey = 'sctrade_v2_all';
-    try{
-        const raw = localStorage.getItem(ckey);
-        if(raw){
+    // ── Quand le site est servi (wrangler ou Cloudflare) ─────────────
+    // → /api/uex/prices retourne Stanton+Pyro+Nyx depuis le cache KV serveur
+    // → une seule requête, pas de rate limit côté navigateur
+    if(!IS_LOCAL){
+        setDot('busy', T('load.commodities'));
+        showLoad(T('load.commodities'));
+        const [commList, pricesResp] = await Promise.all([
+            apiFetch('commodities'),
+            fetch('/api/uex/prices').then(r=>r.json()),
+        ]);
+        const comms = {};
+        commList.forEach(c=>{ comms[c.id]={name:c.name,code:c.code,illegal:c.is_illegal,kind:c.kind}; });
+        let prices = (pricesResp.status==='ok' && Array.isArray(pricesResp.data))
+            ? pricesResp.data : [];
+        S.rawUexPrices = prices;
+        prices = await mergeSFPrices(prices);
+        S.crossPrices = prices;
+        return {prices, comms};
+    }
+
+    // ── Mode local (file://) : fallback direct UEX avec cache localStorage ─
+    const KNOWN_SYSTEMS = ['Stanton', 'Pyro', 'Nyx'];
+    const SYS_TTL = { Stanton: CACHE_MS, Pyro: CACHE_MS, Nyx: CACHE_SYS_MS };
+    const sysCacheKey = s => `sctrade_v3_sys_${s}`;
+    const COMMS_KEY   = 'sctrade_v3_comms';
+
+    function loadSysCache(sys){
+        try{
+            const raw = localStorage.getItem(sysCacheKey(sys));
+            if(!raw) return null;
             const c = JSON.parse(raw);
-            if(Date.now()-c.ts < CACHE_MS){
-                // Restaurer les états S.* même depuis le cache
-                if(!S.rawUexPrices) S.rawUexPrices = c.prices;
-                return {prices:c.prices, comms:c.comms};
-            }
-        }
-    }catch{}
+            if(Date.now() - c.ts < SYS_TTL[sys]) return c.prices;
+        }catch{}
+        return null;
+    }
+    function saveSysCache(sys, prices){
+        if(!prices.length) return;
+        try{ localStorage.setItem(sysCacheKey(sys), JSON.stringify({prices, ts:Date.now()})); }catch{}
+    }
+    function loadCommsCache(){
+        try{
+            const raw = localStorage.getItem(COMMS_KEY);
+            if(!raw) return null;
+            const c = JSON.parse(raw);
+            if(Date.now() - c.ts < CACHE_MS) return c.data;
+        }catch{}
+        return null;
+    }
 
-    // 1) Commodités
-    setDot('busy',T('load.commodities'));
-    showLoad(T('load.commodities'));
-    const commList = await apiFetch('commodities');
-    const comms={};
-    commList.forEach(c=>{ comms[c.id]={name:c.name,code:c.code,illegal:c.is_illegal,kind:c.kind}; });
+    // ── Quick path : tout en cache → zéro requête API ────────────────
+    const _sc = loadSysCache('Stanton');
+    const _pc = loadSysCache('Pyro');
+    const _nc = loadSysCache('Nyx');
+    const _cc = loadCommsCache();
+    if(_sc && _pc && _nc && _cc){
+        let prices = [..._sc, ..._pc, ..._nc];
+        S.rawUexPrices = prices;
+        prices = await mergeSFPrices(prices);
+        S.crossPrices = prices;
+        return {prices, comms:_cc};
+    }
 
-    // 2) Terminaux — collecter tous les systèmes disponibles
-    setDot('busy',T('load.terminals'));
+    // ── Commodités ───────────────────────────────────────────────────
+    let comms = _cc;
+    if(!comms){
+        setDot('busy', T('load.commodities'));
+        showLoad(T('load.commodities'));
+        const commList = await apiFetch('commodities');
+        comms = {};
+        commList.forEach(c=>{ comms[c.id]={name:c.name,code:c.code,illegal:c.is_illegal,kind:c.kind}; });
+        try{ localStorage.setItem(COMMS_KEY, JSON.stringify({data:comms, ts:Date.now()})); }catch{}
+    }
+
+    // ── Terminaux (nécessaires pour enrichissement + fallback) ───────
+    setDot('busy', T('load.terminals'));
     showLoad(T('load.terminals'));
     const terminals = await apiFetch('terminals');
 
-    // Systèmes connus (base) + détection auto depuis les terminaux
-    const KNOWN_SYSTEMS = ['Stanton', 'Pyro', 'Nyx'];
     const sysMap = new Map();
-    // Map terminal_id → system_name pour enrichir les prix si besoin
     const termSysMap = new Map();
     terminals.forEach(t => {
         if(t.id_star_system && t.star_system_name){
             sysMap.set(t.star_system_name, t.id_star_system);
-            // Double-clé (number ET string) pour éviter les mismatches de type API
             termSysMap.set(t.id, t.star_system_name);
             termSysMap.set(String(t.id), t.star_system_name);
         }
     });
-    // Ajouter les systèmes connus même s'ils ne sont pas dans les terminaux
-    // (leurs IDs seront null → on les cherchera autrement)
 
-    // 3) Prix — fetch via Stanton (l'endpoint UEX retourne TOUS les systèmes en une requête)
-    setDot('busy',T('load.prices',{sys:'Stanton'}));
-    showLoad(T('load.prices',{sys:'Stanton'}));
-    let prices = [];
-    const stantonId = sysMap.get('Stanton');
-    if(stantonId){
-        try{
-            prices = await apiFetch(`commodities_prices/id_star_system/${stantonId}`);
-        }catch(e){
-            // Rate limit explicite OU erreur réseau (CORS+429) → on signale à l'utilisateur
-            // sans mettre de résultat vide en cache
-            if(e.isRateLimit || e instanceof TypeError)
-                throw new Error(T('err.rateLimit'));
-            prices = [];
-        }
-    }
-
-    // Fallback complet : prix terminal par terminal si le fetch système a tout raté
-    if(!prices.length){
-        const cargoTerms = terminals.filter(t=>
-            t.is_available===1 &&
-            (t.is_cargo_center===1 || t.has_freight_elevator===1 || t.has_loading_dock===1)
-        );
-        // Grouper par système pour affichage clair
-        const sysGroups = {};
-        cargoTerms.forEach(t => {
-            const sys = t.star_system_name || 'Inconnu';
-            if(!sysGroups[sys]) sysGroups[sys] = [];
-            sysGroups[sys].push(t);
-        });
-        const allPrices = [];
-        const BATCH = 5;
-
-        for(const [sys, sysTerms] of Object.entries(sysGroups)){
-            const total = sysTerms.length;
-            for(let i=0; i<sysTerms.length; i+=BATCH){
-                const batch = sysTerms.slice(i, i+BATCH);
-                const done  = Math.min(i+BATCH, total);
-                showLoad(`${sys} — ${done} / ${total} terminaux`);
-                setDot('busy', `${sys} — ${done}/${total}`);
-
-                const results = await Promise.all(
-                    batch.map(t => apiFetch(`commodities_prices/id_terminal/${t.id}`).catch(()=>[]))
-                );
-                results.forEach(r=>{ if(Array.isArray(r)) allPrices.push(...r); });
-                if(i+BATCH < sysTerms.length) await sleep(80);
-            }
-        }
-        prices = allPrices;
-    }
-
-    // ── Enrichissement star_system_name (type-safe : number ET string) ──
     const _enrich = ps => ps.forEach(p => {
         if(!p.star_system_name && p.id_terminal)
             p.star_system_name = termSysMap.get(p.id_terminal) || termSysMap.get(String(p.id_terminal));
     });
-    _enrich(prices);
 
-    // ── Couverture des systèmes non-Stanton (Pyro, Nyx, …) ──────────────
-    // L'endpoint UEX /id_star_system/{id} ne sert que Stanton.
-    // Pour les autres systèmes : cache séparé 1h + fetch séquentiel pour éviter
-    // tout rate-limit (600 ms entre chaque terminal, 1 requête à la fois).
-    const _coveredSys = new Set(prices.map(p=>p.star_system_name).filter(Boolean));
-    // On charge TOUS les systèmes connus d'un coup.
-    // Le dropdown système ne fait que filtrer l'affichage côté client — pas de refetch.
-    const _needExtra = KNOWN_SYSTEMS.filter(s => s !== 'Stanton');
-    const _missSys = [...new Set([
-        ...[...sysMap.keys()].filter(s => _needExtra.includes(s) && !_coveredSys.has(s)),
-        ..._needExtra.filter(s => !_coveredSys.has(s))
-    ])];
-    if(_missSys.length){
-        // ── Tentative depuis le cache longue durée ───────────────────────
-        const _sysCacheKey = `sctrade_v2_sys_${_missSys.sort().join('_')}`;
-        let _sysCached = null;
-        try{
-            const raw = localStorage.getItem(_sysCacheKey);
-            if(raw){ const c=JSON.parse(raw); if(Date.now()-c.ts < CACHE_SYS_MS) _sysCached=c.prices; }
-        }catch{}
-
-        if(_sysCached){
-            // Cache valide : on enrichit et on ajoute directement
-            _enrich(_sysCached);
-            prices.push(..._sysCached);
-        } else {
-            // Cache expiré : fetch séquentiel terminal par terminal (anti rate-limit)
-            // Filtre cargo retiré : Levski (Nyx) et autres stations hors-Stanton peuvent
-            // avoir des flags différents des cargo centers. On prend tous les terminaux disponibles.
-            const missTerms = terminals.filter(t =>
-                _missSys.includes(t.star_system_name) &&
-                t.is_available === 1
+    // ── Fetch terminal par terminal, 5 par 5 ─────────────────────────
+    // BATCH_FAST : fallback Stanton (80ms, pas de rate-limit résiduel)
+    // BATCH_SLOW : Pyro/Nyx après un gros fetch (3000ms pour rester ~100 req/min)
+    async function fetchTermsBatch(sysTerms, sysName, delayMs){
+        const BATCH = 5;
+        const total = sysTerms.length;
+        const collected = [];
+        for(let i = 0; i < sysTerms.length; i += BATCH){
+            const batch = sysTerms.slice(i, i + BATCH);
+            const done  = Math.min(i + BATCH, total);
+            setDot('busy', `${sysName} — ${done}/${total}`);
+            showLoad(`${sysName} — ${done} / ${total} terminaux`);
+            const results = await Promise.all(
+                batch.map(t => apiFetch(`commodities_prices/id_terminal/${t.id}`).catch(()=>[]))
             );
-            if(missTerms.length){
-                const sysNewPrices = [];
-                // Grouper par système pour affichage clair (Pyro X/303, Nyx X/98…)
-                const missGroups = {};
-                missTerms.forEach(t => {
-                    const sys = t.star_system_name || 'Inconnu';
-                    if(!missGroups[sys]) missGroups[sys] = [];
-                    missGroups[sys].push(t);
-                });
-                for(const [sys, sysTerms] of Object.entries(missGroups)){
-                    const total = sysTerms.length;
-                    setDot('busy', T('load.prices', {sys}));
-                    showLoad(T('load.prices', {sys}));
-                    for(let i = 0; i < sysTerms.length; i++){
-                        setDot('busy', `${sys} — ${i+1}/${total}`);
-                        showLoad(`${sys} — ${i+1} / ${total} terminaux`);
-                        const res = await apiFetch(`commodities_prices/id_terminal/${sysTerms[i].id}`)
-                            .catch(() => []); // rate limit ou erreur → on saute ce terminal
-                        if(Array.isArray(res)){ _enrich(res); sysNewPrices.push(...res); }
-                        if(i < sysTerms.length - 1) await sleep(1000); // 1s entre chaque = ~60 req/min max
-                    }
-                }
-                // Mise en cache longue durée (1h)
-                try{ localStorage.setItem(_sysCacheKey, JSON.stringify({prices:sysNewPrices,ts:Date.now()})); }catch{}
-                prices.push(...sysNewPrices);
+            results.forEach(r => { if(Array.isArray(r)){ _enrich(r); collected.push(...r); } });
+            if(i + BATCH < sysTerms.length) await sleep(delayMs);
+        }
+        return collected;
+    }
+
+    // ── Chargement Stanton + Pyro ────────────────────────────────────
+    let stantonPrices = loadSysCache('Stanton');
+    let pyroPrices    = loadSysCache('Pyro');
+
+    if(!stantonPrices){
+        // Tentative endpoint système (retourne Stanton + Pyro en 1 requête)
+        setDot('busy', T('load.prices', {sys:'Stanton'}));
+        showLoad(T('load.prices', {sys:'Stanton'}));
+        const stantonId = sysMap.get('Stanton');
+        let sysResult = [];
+        if(stantonId){
+            try{
+                sysResult = await apiFetch(`commodities_prices/id_star_system/${stantonId}`);
+            }catch(e){
+                if(e.isRateLimit) throw new Error(T('err.rateLimit')); // vrai 429 UEX → on arrête
+                sysResult = []; // CORS local ou réseau → on passe au fallback terminal par terminal
             }
+        }
+        _enrich(sysResult);
+
+        if(sysResult.length){
+            // Endpoint OK : on sépare Stanton et Pyro avant de cacher
+            stantonPrices = sysResult.filter(p => p.star_system_name !== 'Pyro');
+            const pyroFromSys = sysResult.filter(p => p.star_system_name === 'Pyro');
+            saveSysCache('Stanton', stantonPrices);
+            if(pyroFromSys.length){
+                pyroPrices = pyroFromSys;
+                saveSysCache('Pyro', pyroPrices);
+            }
+        } else {
+            // Fallback : cargo terminals Stanton uniquement (5 par 5, 80ms)
+            const stantonTerms = terminals.filter(t =>
+                t.star_system_name === 'Stanton' && t.is_available === 1 &&
+                (t.is_cargo_center===1 || t.has_freight_elevator===1 || t.has_loading_dock===1)
+            );
+            stantonPrices = await fetchTermsBatch(stantonTerms, 'Stanton', 80);
+            saveSysCache('Stanton', stantonPrices);
         }
     }
 
-    // ── Cache APRÈS enrichissement — uniquement si on a des prix (évite de cacher un résultat vide) ──
-    if(prices.length > 0){
-        try{ localStorage.setItem(ckey, JSON.stringify({prices,comms,ts:Date.now()})); }catch{}
+    // ── Chargement Pyro (si pas encore couvert) ──────────────────────
+    if(!pyroPrices){
+        const pyroTerms = terminals.filter(t =>
+            t.star_system_name === 'Pyro' && t.is_available === 1 &&
+            (t.is_cargo_center===1 || t.has_freight_elevator===1 || t.has_loading_dock===1)
+        );
+        pyroPrices = await fetchTermsBatch(pyroTerms, 'Pyro', 5000);
+        saveSysCache('Pyro', pyroPrices);
     }
+
+    // ── Chargement Nyx (cache 1h, 5 par 5, 5000ms = 60 req/min) ─────
+    let nyxPrices = loadSysCache('Nyx');
+    if(!nyxPrices){
+        const nyxTerms = terminals.filter(t =>
+            t.star_system_name === 'Nyx' && t.is_available === 1
+        );
+        nyxPrices = await fetchTermsBatch(nyxTerms, 'Nyx', 5000);
+        saveSysCache('Nyx', nyxPrices); // ne sauvegarde pas si vide (0 prix = CORS ou rate limit)
+    }
+
+    // ── Combinaison finale ───────────────────────────────────────────
+    let prices = [...(stantonPrices||[]), ...(pyroPrices||[]), ...(nyxPrices||[])];
 
     // ── Stocke les prix UEX bruts avant merge ────────────────────────
     S.rawUexPrices = prices;
 
     // ── Merge avec les prix Streamer Forge (D1) ──────────────────────
-    prices = await mergeSFPrices(prices);  // stocke aussi S.sfOnlyPrices
+    prices = await mergeSFPrices(prices);
     S.crossPrices = prices;
 
-    return {prices,comms};
+    return {prices, comms};
 }
 
 /**

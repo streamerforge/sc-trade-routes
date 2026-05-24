@@ -6,3 +6,11 @@ pages_build_output_dir = "."
 binding = "SF_DB"
 database_name = "sf-trade-data"
 database_id = "39838b4e-583f-4ca3-ace3-707e5dd59266"
+
+# Cache serveur des prix UEX (Stanton+Pyro 5min, Nyx 1h)
+# → créer le namespace : wrangler kv namespace create UEX_CACHE
+# → remplacer les IDs ci-dessous après création
+[[kv_namespaces]]
+binding    = "UEX_CACHE"
+id         = "6ffd3ed9170e4d948b43571cb8a3f067"
+preview_id = "6ffd3ed9170e4d948b43571cb8a3f067"
