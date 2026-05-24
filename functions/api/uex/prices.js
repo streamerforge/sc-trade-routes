@@ -5,7 +5,7 @@
  * Cache indépendant par système :
  *   - Stanton : 5 min
  *   - Pyro    : 5 min
- *   - Nyx     : 1h
+ *   - Nyx     : 5 min
  *
  * Fetch terminal par terminal (10 en parallèle) — évite les endpoints
  * id_star_system qui requièrent des paramètres supplémentaires.
@@ -24,7 +24,7 @@ const CORS = {
 const UEX_BASE   = 'https://api.uexcorp.uk/2.0';
 const TTL_STANTON = 5 * 60;    // 5 min
 const TTL_PYRO    = 5 * 60;    // 5 min
-const TTL_NYX     = 60 * 60;   // 1h
+const TTL_NYX     = 5 * 60;    // 5 min
 const BATCH       = 10;        // requêtes en parallèle (server-side, pas de CORS)
 
 export async function onRequest(context) {
