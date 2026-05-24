@@ -1473,7 +1473,7 @@ async function apiFetch(endpoint){
     return j.data;
 }
 
-async function loadData(selSys = ''){
+async function loadData(){
     const ckey = 'sctrade_v2_all';
     try{
         const raw = localStorage.getItem(ckey);
@@ -1578,11 +1578,9 @@ async function loadData(selSys = ''){
     // Pour les autres systèmes : cache séparé 1h + fetch séquentiel pour éviter
     // tout rate-limit (600 ms entre chaque terminal, 1 requête à la fois).
     const _coveredSys = new Set(prices.map(p=>p.star_system_name).filter(Boolean));
-    // Systèmes non couverts par le fetch Stanton : on ne charge que ce dont l'utilisateur a besoin.
-    // selSys='' → tous les systèmes ; selSys='Nyx' → seulement Nyx ; selSys='Stanton'/'Pyro' → rien de plus.
-    const _needExtra = selSys === '' ? KNOWN_SYSTEMS.filter(s => s !== 'Stanton')
-                     : (selSys !== 'Stanton' && selSys !== 'Pyro') ? [selSys]
-                     : [];
+    // On charge TOUS les systèmes connus d'un coup.
+    // Le dropdown système ne fait que filtrer l'affichage côté client — pas de refetch.
+    const _needExtra = KNOWN_SYSTEMS.filter(s => s !== 'Stanton');
     const _missSys = [...new Set([
         ...[...sysMap.keys()].filter(s => _needExtra.includes(s) && !_coveredSys.has(s)),
         ..._needExtra.filter(s => !_coveredSys.has(s))
@@ -1870,7 +1868,7 @@ async function calculate(){
     showLoad(T('load.connect'));
 
     try{
-        const {prices, comms} = await loadData(document.getElementById('sysFilter').value);
+        const {prices, comms} = await loadData();
 
         setDot('busy',T('load.calc'));
         showLoad(T('load.routes'));
