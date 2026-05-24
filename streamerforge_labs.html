@@ -1109,6 +1109,7 @@ const SHIPS = [
     { name:'Constellation Taurus',    mfr:'RSI',      scu:174,    cat:'Moyen' },
     { name:'Raft',                    mfr:'ARGO',     scu:192,    cat:'Moyen',  rent:true },
     { name:'Starlancer MAX',          mfr:'MISC',     scu:224,    cat:'Moyen' },
+    { name:'Hermes',                  mfr:'Crusader', scu:288,    cat:'Moyen' },
     // ── Grand (300–999 SCU) ──
     { name:'Carrack',                 mfr:'Anvil',    scu:456,    cat:'Grand' },
     { name:'Hull B',                  mfr:'MISC',     scu:512,    cat:'Grand' },
@@ -1228,7 +1229,7 @@ const TRANSLATIONS = {
     'state.empty.title':'Aucune route chargée','state.empty.sub':'Sélectionne un vaisseau, configure tes filtres puis clique sur <strong>Calculer les routes</strong>',
     'state.noCircuit.title':'Aucun circuit trouvé','state.noCircuit.sub':'Essaie de réduire le profit minimum, d\'augmenter le budget ou de désactiver "stations uniquement".',
     'state.noRoute.title':'Aucune route trouvée','state.noRoute.sub':'Essaie d\'ajuster les filtres : budget, SCU, profit minimum, ou désactive "stations uniquement".',
-    'state.sysMsg':'⚠️ Le système <strong>{sys}</strong> n\'a peut-être pas encore de données de prix dans UEX.<br>Essaie <strong>"Tous les systèmes"</strong> ou sélectionne <strong>Stanton</strong>.',
+    'state.sysMsg':'⚠️ Aucune route rentable trouvée dans <strong>{sys}</strong> avec ces filtres.<br>Essaie de réduire le profit minimum, d\'augmenter le budget, ou sélectionne <strong>"Tous les systèmes"</strong>.',
     'state.sfEmpty.title':'Pas encore de données SF','state.sfEmpty.sub':'Aucun trade validé par la communauté pour l\'instant.<br>Passe en source <strong>UEX</strong> ou <strong>Croisé</strong>, fais un trade en jeu, puis clique sur 🛒 sur la route pour être le premier à contribuer !',
     'state.noClosedCircuit':'⚠ Aucun circuit fermé — chaînes libres en fallback',
     'state.circuitsClosed':'{n} fermés','state.circuitsOpen':'{n} ouverts','state.circuitsTop100':'affichage des 100 meilleurs',
@@ -1238,6 +1239,7 @@ const TRANSLATIONS = {
     'th.buyPrice':'Achat/SCU','th.sellPrice':'Vente/SCU','th.profitScu':'+Profit/SCU',
     'th.qtyScu':'Qté SCU','th.invest':'Invest.','th.totalProfit':'Profit Total','th.time':'⏱ Temps','th.timeEst':'est.',
     'err.noShip':'⚠️ Sélectionne un vaisseau ou entre une capacité SCU personnalisée.',
+    'err.rateLimit':'⏳ UEX rate limit — tu as fait trop de requêtes en peu de temps. Attends 5-10 minutes puis réessaie.',
     'card.closed':'🔄 Circuit fermé','card.open':'→ Trajet ouvert',
     'state.noData':'données non renseignées',
     'chip.budget':'💰 Budget','chip.ship':'🚀 Vaisseau','chip.stock':'📦 Stock','chip.sell':'🛒 Vente',
@@ -1333,7 +1335,7 @@ const TRANSLATIONS = {
     'state.empty.title':'No routes loaded','state.empty.sub':'Select a ship, configure your filters then click <strong>Calculate routes</strong>',
     'state.noCircuit.title':'No circuit found','state.noCircuit.sub':'Try reducing the minimum profit, increasing the budget or disabling "space stations only".',
     'state.noRoute.title':'No route found','state.noRoute.sub':'Try adjusting the filters: budget, SCU, minimum profit, or disable "space stations only".',
-    'state.sysMsg':'⚠️ The <strong>{sys}</strong> system may not yet have price data in UEX.<br>Try <strong>"All systems"</strong> or select <strong>Stanton</strong>.',
+    'state.sysMsg':'⚠️ No profitable routes found in <strong>{sys}</strong> with these filters.<br>Try lowering the minimum profit, increasing the budget, or select <strong>"All systems"</strong>.',
     'state.sfEmpty.title':'No SF data yet','state.sfEmpty.sub':'No community-validated trades yet.<br>Switch to <strong>UEX</strong> or <strong>Cross</strong> source, run a trade in-game, then click 🛒 on the route to be the first to contribute!',
     'state.noClosedCircuit':'⚠ No closed circuit — open chains as fallback',
     'state.circuitsClosed':'{n} closed','state.circuitsOpen':'{n} open','state.circuitsTop100':'showing top 100',
@@ -1343,6 +1345,7 @@ const TRANSLATIONS = {
     'th.buyPrice':'Buy/SCU','th.sellPrice':'Sell/SCU','th.profitScu':'+Profit/SCU',
     'th.qtyScu':'Qty SCU','th.invest':'Invest.','th.totalProfit':'Total Profit','th.time':'⏱ Time','th.timeEst':'est.',
     'err.noShip':'⚠️ Select a ship or enter a custom SCU capacity.',
+    'err.rateLimit':'⏳ UEX rate limit — too many requests in a short time. Wait 5-10 minutes and try again.',
     'card.closed':'🔄 Closed circuit','card.open':'→ Open route',
     'state.noData':'data unavailable',
     'chip.budget':'💰 Budget','chip.ship':'🚀 Ship','chip.stock':'📦 Stock','chip.sell':'🛒 Sell',
@@ -1378,7 +1381,8 @@ function applyLang(){
         if(S.mode === 'simple'  && window._vRoutes?.length)   renderTable(window._vRoutes);
         if(S.mode === 'circuit' && window._vCircuits?.length) renderMultiHop(window._vCircuits);
     }
-    if(document.getElementById('tutoOverlay')?.style.display !== 'none') renderTutoStep();
+    const _tutoEl = document.getElementById('tutoOverlay');
+    if(_tutoEl && _tutoEl.style.display !== 'none') renderTutoStep();
 }
 
 function setLang(lang){
@@ -1392,7 +1396,8 @@ const API = (location.protocol === 'file:' || location.hostname === 'localhost')
     ? 'https://api.uexcorp.uk/2.0'
     : '/api/uex';
 const SF_API = '/api/sf';
-const CACHE_MS = 3 * 60 * 1000;
+const CACHE_MS      = 5 * 60 * 1000;   // cache Stanton : 5 min
+const CACHE_SYS_MS  = 60 * 60 * 1000;  // cache systèmes non-Stanton (Pyro, Nyx) : 1h
 
 // ═══════════════════════════════════════════
 //  INIT
@@ -1456,9 +1461,15 @@ function setBudget(v){ document.getElementById('budget').value = v; }
 // ═══════════════════════════════════════════
 async function apiFetch(endpoint){
     const r = await fetch(`${API}/${endpoint}`);
-    if(!r.ok) throw new Error(`HTTP ${r.status} sur /${endpoint}`);
-    const j = await r.json();
-    if(j.status!=='ok') throw new Error(j.status||'Erreur API');
+    if(r.status === 429) throw Object.assign(new Error('RATE_LIMIT'), {isRateLimit:true});
+    // UEX peut retourner des codes non-standard (ex: 486) avec un body JSON valide.
+    // On tente de lire le JSON AVANT de rejeter sur le status HTTP.
+    let j;
+    try{ j = await r.json(); }catch(e){
+        if(!r.ok) throw new Error(`HTTP ${r.status} sur /${endpoint}`);
+        throw e;
+    }
+    if(j.status!=='ok') throw new Error(j.status||`Erreur API ${r.status}`);
     return j.data;
 }
 
@@ -1468,7 +1479,11 @@ async function loadData(){
         const raw = localStorage.getItem(ckey);
         if(raw){
             const c = JSON.parse(raw);
-            if(Date.now()-c.ts < CACHE_MS) return {prices:c.prices, comms:c.comms};
+            if(Date.now()-c.ts < CACHE_MS){
+                // Restaurer les états S.* même depuis le cache
+                if(!S.rawUexPrices) S.rawUexPrices = c.prices;
+                return {prices:c.prices, comms:c.comms};
+            }
         }
     }catch{}
 
@@ -1485,40 +1500,46 @@ async function loadData(){
     // Systèmes connus (base) + détection auto depuis les terminaux
     const KNOWN_SYSTEMS = ['Stanton', 'Pyro', 'Nyx'];
     const sysMap = new Map();
+    // Map terminal_id → system_name pour enrichir les prix si besoin
+    const termSysMap = new Map();
     terminals.forEach(t => {
-        if(t.id_star_system && t.star_system_name)
+        if(t.id_star_system && t.star_system_name){
             sysMap.set(t.star_system_name, t.id_star_system);
+            // Double-clé (number ET string) pour éviter les mismatches de type API
+            termSysMap.set(t.id, t.star_system_name);
+            termSysMap.set(String(t.id), t.star_system_name);
+        }
     });
     // Ajouter les systèmes connus même s'ils ne sont pas dans les terminaux
     // (leurs IDs seront null → on les cherchera autrement)
 
     // Populate le dropdown : systèmes connus d'abord, puis les nouveaux détectés
     const sysSelect  = document.getElementById('sysFilter');
-    const prevSys    = sysSelect.value || 'Stanton';
+    const prevSys    = sysSelect.value;  // '' = tous les systèmes, on garde tel quel
     const detectedSys = [...sysMap.keys()];
     const allSysNames = [...new Set([...KNOWN_SYSTEMS, ...detectedSys])];
     sysSelect.innerHTML = allSysNames
-        .map(n => `<option value="${n}"${n==='Stanton'?' selected':''}>${n}</option>`)
+        .map(n => `<option value="${n}">${n}</option>`)
         .join('') + `<option value="">${T('filter.allSystems')}</option>`;
-    if(prevSys && [...sysSelect.options].some(o => o.value === prevSys))
-        sysSelect.value = prevSys;
+    const _sysOpts = [...sysSelect.options];
+    if(_sysOpts.some(o => o.value === prevSys)) sysSelect.value = prevSys;
+    else sysSelect.value = 'Stanton';
 
-    // 3) Prix — fetch tous les systèmes trouvés en parallèle
-    setDot('busy',T('load.prices',{sys:[...sysMap.keys()].join(', ')}));
+    // 3) Prix — fetch via Stanton (l'endpoint UEX retourne TOUS les systèmes en une requête)
+    setDot('busy',T('load.prices',{sys:'Stanton'}));
     let prices = [];
-    try{
-        const fetches = [...sysMap.entries()].map(([name, id]) =>
-            apiFetch(`commodities_prices/id_star_system/${id}`).catch(()=>[])
-        );
-        const allPrices = await Promise.all(fetches);
-        prices = allPrices.flat();
-    }catch(e){
-        prices = [];
+    const stantonId = sysMap.get('Stanton');
+    if(stantonId){
+        try{
+            prices = await apiFetch(`commodities_prices/id_star_system/${stantonId}`);
+        }catch(e){
+            if(e.isRateLimit) throw new Error(T('err.rateLimit'));
+            prices = [];
+        }
     }
 
-    // Fallback : prix terminal par terminal si la requête système a échoué
+    // Fallback complet : prix terminal par terminal si le fetch système a tout raté
     if(!prices.length){
-        // Garder seulement les terminaux qui ont des cargos
         const cargoTerms = terminals.filter(t=>
             t.is_available===1 &&
             (t.is_cargo_center===1 || t.has_freight_elevator===1 || t.has_loading_dock===1)
@@ -1542,6 +1563,62 @@ async function loadData(){
         prices = allPrices;
     }
 
+    // ── Enrichissement star_system_name (type-safe : number ET string) ──
+    const _enrich = ps => ps.forEach(p => {
+        if(!p.star_system_name && p.id_terminal)
+            p.star_system_name = termSysMap.get(p.id_terminal) || termSysMap.get(String(p.id_terminal));
+    });
+    _enrich(prices);
+
+    // ── Couverture des systèmes non-Stanton (Pyro, Nyx, …) ──────────────
+    // L'endpoint UEX /id_star_system/{id} ne sert que Stanton.
+    // Pour les autres systèmes : cache séparé 1h + fetch séquentiel pour éviter
+    // tout rate-limit (600 ms entre chaque terminal, 1 requête à la fois).
+    const _coveredSys = new Set(prices.map(p=>p.star_system_name).filter(Boolean));
+    // Inclut aussi les KNOWN_SYSTEMS non détectés dans sysMap (ex: Nyx si terminaux sans id_star_system)
+    const _missSys = [...new Set([
+        ...[...sysMap.keys()].filter(s => s !== 'Stanton' && !_coveredSys.has(s)),
+        ...KNOWN_SYSTEMS.filter(s => s !== 'Stanton' && !_coveredSys.has(s))
+    ])];
+    if(_missSys.length){
+        // ── Tentative depuis le cache longue durée ───────────────────────
+        const _sysCacheKey = `sctrade_v2_sys_${_missSys.sort().join('_')}`;
+        let _sysCached = null;
+        try{
+            const raw = localStorage.getItem(_sysCacheKey);
+            if(raw){ const c=JSON.parse(raw); if(Date.now()-c.ts < CACHE_SYS_MS) _sysCached=c.prices; }
+        }catch{}
+
+        if(_sysCached){
+            // Cache valide : on enrichit et on ajoute directement
+            _enrich(_sysCached);
+            prices.push(..._sysCached);
+        } else {
+            // Cache expiré : fetch séquentiel terminal par terminal (anti rate-limit)
+            // Filtre cargo retiré : Levski (Nyx) et autres stations hors-Stanton peuvent
+            // avoir des flags différents des cargo centers. On prend tous les terminaux disponibles.
+            const missTerms = terminals.filter(t =>
+                _missSys.includes(t.star_system_name) &&
+                t.is_available === 1
+            );
+            if(missTerms.length){
+                const sysNewPrices = [];
+                setDot('busy', T('load.prices', {sys: _missSys.join(', ')}));
+                for(let i = 0; i < missTerms.length; i++){
+                    setDot('busy', T('load.pricesProg', {done: i+1, total: missTerms.length}));
+                    const res = await apiFetch(`commodities_prices/id_terminal/${missTerms[i].id}`)
+                        .catch(e => { if(e.isRateLimit) throw e; return []; });
+                    if(Array.isArray(res)){ _enrich(res); sysNewPrices.push(...res); }
+                    if(i < missTerms.length - 1) await sleep(1000); // 1s entre chaque = ~60 req/min max
+                }
+                // Mise en cache longue durée (1h)
+                try{ localStorage.setItem(_sysCacheKey, JSON.stringify({prices:sysNewPrices,ts:Date.now()})); }catch{}
+                prices.push(...sysNewPrices);
+            }
+        }
+    }
+
+    // ── Cache APRÈS enrichissement (star_system_name inclus) ─────────────
     try{ localStorage.setItem(ckey, JSON.stringify({prices,comms,ts:Date.now()})); }catch{}
 
     // ── Stocke les prix UEX bruts avant merge ────────────────────────
@@ -2518,7 +2595,7 @@ function restoreHistory(id){
     // Restaurer les paramètres budget et système
     document.getElementById('budget').value = e.cfg.budget || '';
     const sys = document.getElementById('sysFilter');
-    if(sys) sys.value = e.cfg.system || 'Stanton';
+    if(sys) sys.value = (e.cfg.system != null) ? e.cfg.system : 'Stanton';
     const hops = document.getElementById('hopCount');
     if(hops) hops.value = e.cfg.hopCount || 5;
     calculate();
