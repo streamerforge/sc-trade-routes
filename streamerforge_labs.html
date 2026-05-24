@@ -946,10 +946,13 @@
                 <label class="lbl" data-i18n="filter.system">Système stellaire</label>
                 <div class="sel-wrap">
                     <select id="sysFilter">
+                        <option value="" selected data-i18n="filter.allSystems">Tous les systèmes</option>
                         <option value="Stanton">Stanton</option>
                         <option value="Pyro">Pyro</option>
                         <option value="Nyx">Nyx</option>
-                        <option value="" selected data-i18n="filter.allSystems">Tous les systèmes</option>
+                        <option value="Stanton↔Pyro">Stanton ↔ Pyro</option>
+                        <option value="Stanton↔Nyx">Stanton ↔ Nyx</option>
+                        <option value="Pyro↔Nyx">Pyro ↔ Nyx</option>
                     </select>
                 </div>
             </div>
@@ -1489,12 +1492,14 @@ async function loadData(){
 
     // 1) Commodités
     setDot('busy',T('load.commodities'));
+    showLoad(T('load.commodities'));
     const commList = await apiFetch('commodities');
     const comms={};
     commList.forEach(c=>{ comms[c.id]={name:c.name,code:c.code,illegal:c.is_illegal,kind:c.kind}; });
 
     // 2) Terminaux — collecter tous les systèmes disponibles
     setDot('busy',T('load.terminals'));
+    showLoad(T('load.terminals'));
     const terminals = await apiFetch('terminals');
 
     // Systèmes connus (base) + détection auto depuis les terminaux
@@ -1513,20 +1518,9 @@ async function loadData(){
     // Ajouter les systèmes connus même s'ils ne sont pas dans les terminaux
     // (leurs IDs seront null → on les cherchera autrement)
 
-    // Populate le dropdown : systèmes connus d'abord, puis les nouveaux détectés
-    const sysSelect  = document.getElementById('sysFilter');
-    const prevSys    = sysSelect.value;  // '' = tous les systèmes, on garde tel quel
-    const detectedSys = [...sysMap.keys()];
-    const allSysNames = [...new Set([...KNOWN_SYSTEMS, ...detectedSys])];
-    sysSelect.innerHTML = allSysNames
-        .map(n => `<option value="${n}">${n}</option>`)
-        .join('') + `<option value="">${T('filter.allSystems')}</option>`;
-    const _sysOpts = [...sysSelect.options];
-    if(_sysOpts.some(o => o.value === prevSys)) sysSelect.value = prevSys;
-    else sysSelect.value = ''; // défaut : tous les systèmes
-
     // 3) Prix — fetch via Stanton (l'endpoint UEX retourne TOUS les systèmes en une requête)
     setDot('busy',T('load.prices',{sys:'Stanton'}));
+    showLoad(T('load.prices',{sys:'Stanton'}));
     let prices = [];
     const stantonId = sysMap.get('Stanton');
     if(stantonId){
@@ -1547,21 +1541,30 @@ async function loadData(){
             t.is_available===1 &&
             (t.is_cargo_center===1 || t.has_freight_elevator===1 || t.has_loading_dock===1)
         );
-        const total = cargoTerms.length;
+        // Grouper par système pour affichage clair
+        const sysGroups = {};
+        cargoTerms.forEach(t => {
+            const sys = t.star_system_name || 'Inconnu';
+            if(!sysGroups[sys]) sysGroups[sys] = [];
+            sysGroups[sys].push(t);
+        });
         const allPrices = [];
         const BATCH = 5;
 
-        for(let i=0; i<cargoTerms.length; i+=BATCH){
-            const batch = cargoTerms.slice(i, i+BATCH);
-            const done  = Math.min(i+BATCH, total);
-            showLoad(T('load.pricesProg',{done,total}));
-            setDot('busy',`Prix ${done}/${total}`);
+        for(const [sys, sysTerms] of Object.entries(sysGroups)){
+            const total = sysTerms.length;
+            for(let i=0; i<sysTerms.length; i+=BATCH){
+                const batch = sysTerms.slice(i, i+BATCH);
+                const done  = Math.min(i+BATCH, total);
+                showLoad(`${sys} — ${done} / ${total} terminaux`);
+                setDot('busy', `${sys} — ${done}/${total}`);
 
-            const results = await Promise.all(
-                batch.map(t => apiFetch(`commodities_prices/id_terminal/${t.id}`).catch(()=>[]))
-            );
-            results.forEach(r=>{ if(Array.isArray(r)) allPrices.push(...r); });
-            if(i+BATCH < cargoTerms.length) await sleep(80);
+                const results = await Promise.all(
+                    batch.map(t => apiFetch(`commodities_prices/id_terminal/${t.id}`).catch(()=>[]))
+                );
+                results.forEach(r=>{ if(Array.isArray(r)) allPrices.push(...r); });
+                if(i+BATCH < sysTerms.length) await sleep(80);
+            }
         }
         prices = allPrices;
     }
@@ -1578,10 +1581,9 @@ async function loadData(){
     // Pour les autres systèmes : cache séparé 1h + fetch séquentiel pour éviter
     // tout rate-limit (600 ms entre chaque terminal, 1 requête à la fois).
     const _coveredSys = new Set(prices.map(p=>p.star_system_name).filter(Boolean));
-    // L'endpoint Stanton couvre Stanton ET Pyro — on ne les refetch jamais.
-    // Seuls les systèmes hors couverture Stanton (ex: Nyx) ont besoin d'un fetch terminal par terminal.
-    const STANTON_COVERS = ['Stanton', 'Pyro'];
-    const _needExtra = KNOWN_SYSTEMS.filter(s => !STANTON_COVERS.includes(s)); // → ['Nyx', ...]
+    // On charge TOUS les systèmes connus d'un coup.
+    // Le dropdown système ne fait que filtrer l'affichage côté client — pas de refetch.
+    const _needExtra = KNOWN_SYSTEMS.filter(s => s !== 'Stanton');
     const _missSys = [...new Set([
         ...[...sysMap.keys()].filter(s => _needExtra.includes(s) && !_coveredSys.has(s)),
         ..._needExtra.filter(s => !_coveredSys.has(s))
@@ -1600,52 +1602,39 @@ async function loadData(){
             _enrich(_sysCached);
             prices.push(..._sysCached);
         } else {
-            const sysNewPrices = [];
-
-            // ── Tier 1 : essayer l'endpoint id_star_system pour chaque système manquant (1 requête) ──
-            for(const sys of _missSys){
-                const sysId = sysMap.get(sys);
-                if(!sysId) continue;
-                setDot('busy', T('load.prices', {sys}));
-                try{
-                    const res = await apiFetch(`commodities_prices/id_star_system/${sysId}`);
-                    if(Array.isArray(res) && res.length){ _enrich(res); sysNewPrices.push(...res); }
-                }catch{}
-            }
-
-            // ── Tier 2 : pour les systèmes encore non couverts, fetch terminal par terminal ──
-            // Filtre cargo d'abord (rapide, ~5-10 terminaux) ; si aucun résultat, élargit à tous.
-            const coveredBySys = new Set(sysNewPrices.map(p=>p.star_system_name).filter(Boolean));
-            const stillMiss = _missSys.filter(s => !coveredBySys.has(s));
-            if(stillMiss.length){
-                // Tier 2a : filtre cargo (is_cargo_center / freight_elevator / loading_dock)
-                let missTerms = terminals.filter(t =>
-                    stillMiss.includes(t.star_system_name) &&
-                    t.is_available === 1 &&
-                    (t.is_cargo_center === 1 || t.has_freight_elevator === 1 || t.has_loading_dock === 1)
-                );
-                // Tier 2b : si filtre cargo donne 0, prendre tous les terminaux disponibles
-                if(!missTerms.length){
-                    missTerms = terminals.filter(t =>
-                        stillMiss.includes(t.star_system_name) && t.is_available === 1
-                    );
-                }
-                if(missTerms.length){
-                    setDot('busy', T('load.prices', {sys: stillMiss.join(', ')}));
-                    for(let i = 0; i < missTerms.length; i++){
-                        setDot('busy', T('load.pricesProg', {done: i+1, total: missTerms.length}));
-                        const res = await apiFetch(`commodities_prices/id_terminal/${missTerms[i].id}`)
-                            .catch(() => []);
+            // Cache expiré : fetch séquentiel terminal par terminal (anti rate-limit)
+            // Filtre cargo retiré : Levski (Nyx) et autres stations hors-Stanton peuvent
+            // avoir des flags différents des cargo centers. On prend tous les terminaux disponibles.
+            const missTerms = terminals.filter(t =>
+                _missSys.includes(t.star_system_name) &&
+                t.is_available === 1
+            );
+            if(missTerms.length){
+                const sysNewPrices = [];
+                // Grouper par système pour affichage clair (Pyro X/303, Nyx X/98…)
+                const missGroups = {};
+                missTerms.forEach(t => {
+                    const sys = t.star_system_name || 'Inconnu';
+                    if(!missGroups[sys]) missGroups[sys] = [];
+                    missGroups[sys].push(t);
+                });
+                for(const [sys, sysTerms] of Object.entries(missGroups)){
+                    const total = sysTerms.length;
+                    setDot('busy', T('load.prices', {sys}));
+                    showLoad(T('load.prices', {sys}));
+                    for(let i = 0; i < sysTerms.length; i++){
+                        setDot('busy', `${sys} — ${i+1}/${total}`);
+                        showLoad(`${sys} — ${i+1} / ${total} terminaux`);
+                        const res = await apiFetch(`commodities_prices/id_terminal/${sysTerms[i].id}`)
+                            .catch(() => []); // rate limit ou erreur → on saute ce terminal
                         if(Array.isArray(res)){ _enrich(res); sysNewPrices.push(...res); }
-                        if(i < missTerms.length - 1) await sleep(800);
+                        if(i < sysTerms.length - 1) await sleep(1000); // 1s entre chaque = ~60 req/min max
                     }
                 }
-            }
-
-            // Mise en cache longue durée (1h)
-            if(sysNewPrices.length)
+                // Mise en cache longue durée (1h)
                 try{ localStorage.setItem(_sysCacheKey, JSON.stringify({prices:sysNewPrices,ts:Date.now()})); }catch{}
-            prices.push(...sysNewPrices);
+                prices.push(...sysNewPrices);
+            }
         }
     }
 
@@ -1744,14 +1733,36 @@ function sfToUexFormat(sf, uexBase){
 }
 
 // ═══════════════════════════════════════════
+//  HELPERS FILTRE SYSTÈME
+// ═══════════════════════════════════════════
+// true si le système est pertinent pour le filtre (pré-filtre des prix)
+function sysRelevant(filterVal, sysName){
+    if(!filterVal) return true;           // '' = tous les systèmes
+    if(filterVal.includes('↔')){
+        const [a, b] = filterVal.split('↔');
+        return sysName === a || sysName === b;
+    }
+    return sysName === filterVal;         // intra-système
+}
+// Vérifie qu'une paire achat/vente correspond exactement au filtre
+function sysRouteMatch(filterVal, buySys, sellSys){
+    if(!filterVal) return true;
+    if(filterVal.includes('↔')){
+        const [a, b] = filterVal.split('↔');
+        return (buySys === a && sellSys === b) || (buySys === b && sellSys === a);
+    }
+    return buySys === filterVal && sellSys === filterVal;
+}
+
+// ═══════════════════════════════════════════
 //  CALCUL DES ROUTES
 // ═══════════════════════════════════════════
 function calcRoutes(prices, comms, cfg){
     const byCom = {};
 
     for(const p of prices){
-        // Filtre système stellaire
-        if(cfg.system && p.star_system_name !== cfg.system) continue;
+        // Filtre système stellaire (pre-filtre : inclut tous les systèmes pertinents)
+        if(!sysRelevant(cfg.system, p.star_system_name)) continue;
 
         // Filtre station spatiale
         if(cfg.spaceOnly && !p.space_station_name) continue;
@@ -1779,6 +1790,8 @@ function calcRoutes(prices, comms, cfg){
         for(const buy of com.buy){
             for(const sell of com.sell){
                 if(buy.id_terminal===sell.id_terminal) continue;
+                // Filtre combinaison de systèmes (intra ou inter)
+                if(!sysRouteMatch(cfg.system, buy.star_system_name, sell.star_system_name)) continue;
 
                 const profScu = sell.price_sell - buy.price_buy;
                 if(profScu<=0) continue;
@@ -1949,7 +1962,7 @@ function calcMultiHop(prices, comms, cfg){
     // ── 1. Construction de la carte des terminaux ──────────────────
     const termMap = {};
     for(const p of prices){
-        if(cfg.system && p.star_system_name !== cfg.system) continue;
+        if(!sysRelevant(cfg.system, p.star_system_name)) continue;
         if(cfg.spaceOnly && !p.space_station_name) continue;
         const tid = p.id_terminal;
         if(!termMap[tid]){
@@ -2628,7 +2641,7 @@ function restoreHistory(id){
     // Restaurer les paramètres budget et système
     document.getElementById('budget').value = e.cfg.budget || '';
     const sys = document.getElementById('sysFilter');
-    if(sys) sys.value = (e.cfg.system != null) ? e.cfg.system : 'Stanton';
+    if(sys) sys.value = (e.cfg.system != null) ? e.cfg.system : '';
     const hops = document.getElementById('hopCount');
     if(hops) hops.value = e.cfg.hopCount || 5;
     calculate();
