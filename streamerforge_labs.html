@@ -1600,27 +1600,52 @@ async function loadData(){
             _enrich(_sysCached);
             prices.push(..._sysCached);
         } else {
-            // Cache expiré : fetch séquentiel terminal par terminal (anti rate-limit)
-            // Filtre cargo retiré : Levski (Nyx) et autres stations hors-Stanton peuvent
-            // avoir des flags différents des cargo centers. On prend tous les terminaux disponibles.
-            const missTerms = terminals.filter(t =>
-                _missSys.includes(t.star_system_name) &&
-                t.is_available === 1
-            );
-            if(missTerms.length){
-                const sysNewPrices = [];
-                setDot('busy', T('load.prices', {sys: _missSys.join(', ')}));
-                for(let i = 0; i < missTerms.length; i++){
-                    setDot('busy', T('load.pricesProg', {done: i+1, total: missTerms.length}));
-                    const res = await apiFetch(`commodities_prices/id_terminal/${missTerms[i].id}`)
-                        .catch(() => []); // rate limit ou erreur → on saute ce terminal
-                    if(Array.isArray(res)){ _enrich(res); sysNewPrices.push(...res); }
-                    if(i < missTerms.length - 1) await sleep(1000); // 1s entre chaque = ~60 req/min max
-                }
-                // Mise en cache longue durée (1h)
-                try{ localStorage.setItem(_sysCacheKey, JSON.stringify({prices:sysNewPrices,ts:Date.now()})); }catch{}
-                prices.push(...sysNewPrices);
+            const sysNewPrices = [];
+
+            // ── Tier 1 : essayer l'endpoint id_star_system pour chaque système manquant (1 requête) ──
+            for(const sys of _missSys){
+                const sysId = sysMap.get(sys);
+                if(!sysId) continue;
+                setDot('busy', T('load.prices', {sys}));
+                try{
+                    const res = await apiFetch(`commodities_prices/id_star_system/${sysId}`);
+                    if(Array.isArray(res) && res.length){ _enrich(res); sysNewPrices.push(...res); }
+                }catch{}
             }
+
+            // ── Tier 2 : pour les systèmes encore non couverts, fetch terminal par terminal ──
+            // Filtre cargo d'abord (rapide, ~5-10 terminaux) ; si aucun résultat, élargit à tous.
+            const coveredBySys = new Set(sysNewPrices.map(p=>p.star_system_name).filter(Boolean));
+            const stillMiss = _missSys.filter(s => !coveredBySys.has(s));
+            if(stillMiss.length){
+                // Tier 2a : filtre cargo (is_cargo_center / freight_elevator / loading_dock)
+                let missTerms = terminals.filter(t =>
+                    stillMiss.includes(t.star_system_name) &&
+                    t.is_available === 1 &&
+                    (t.is_cargo_center === 1 || t.has_freight_elevator === 1 || t.has_loading_dock === 1)
+                );
+                // Tier 2b : si filtre cargo donne 0, prendre tous les terminaux disponibles
+                if(!missTerms.length){
+                    missTerms = terminals.filter(t =>
+                        stillMiss.includes(t.star_system_name) && t.is_available === 1
+                    );
+                }
+                if(missTerms.length){
+                    setDot('busy', T('load.prices', {sys: stillMiss.join(', ')}));
+                    for(let i = 0; i < missTerms.length; i++){
+                        setDot('busy', T('load.pricesProg', {done: i+1, total: missTerms.length}));
+                        const res = await apiFetch(`commodities_prices/id_terminal/${missTerms[i].id}`)
+                            .catch(() => []);
+                        if(Array.isArray(res)){ _enrich(res); sysNewPrices.push(...res); }
+                        if(i < missTerms.length - 1) await sleep(800);
+                    }
+                }
+            }
+
+            // Mise en cache longue durée (1h)
+            if(sysNewPrices.length)
+                try{ localStorage.setItem(_sysCacheKey, JSON.stringify({prices:sysNewPrices,ts:Date.now()})); }catch{}
+            prices.push(...sysNewPrices);
         }
     }
 
