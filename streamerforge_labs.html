@@ -1533,7 +1533,10 @@ async function loadData(selSys = ''){
         try{
             prices = await apiFetch(`commodities_prices/id_star_system/${stantonId}`);
         }catch(e){
-            if(e.isRateLimit) throw new Error(T('err.rateLimit'));
+            // Rate limit explicite OU erreur réseau (CORS+429) → on signale à l'utilisateur
+            // sans mettre de résultat vide en cache
+            if(e.isRateLimit || e instanceof TypeError)
+                throw new Error(T('err.rateLimit'));
             prices = [];
         }
     }
@@ -1622,8 +1625,10 @@ async function loadData(selSys = ''){
         }
     }
 
-    // ── Cache APRÈS enrichissement (star_system_name inclus) ─────────────
-    try{ localStorage.setItem(ckey, JSON.stringify({prices,comms,ts:Date.now()})); }catch{}
+    // ── Cache APRÈS enrichissement — uniquement si on a des prix (évite de cacher un résultat vide) ──
+    if(prices.length > 0){
+        try{ localStorage.setItem(ckey, JSON.stringify({prices,comms,ts:Date.now()})); }catch{}
+    }
 
     // ── Stocke les prix UEX bruts avant merge ────────────────────────
     S.rawUexPrices = prices;
