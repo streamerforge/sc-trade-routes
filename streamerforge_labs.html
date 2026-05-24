@@ -1578,9 +1578,10 @@ async function loadData(){
     // Pour les autres systèmes : cache séparé 1h + fetch séquentiel pour éviter
     // tout rate-limit (600 ms entre chaque terminal, 1 requête à la fois).
     const _coveredSys = new Set(prices.map(p=>p.star_system_name).filter(Boolean));
-    // On charge TOUS les systèmes connus d'un coup.
-    // Le dropdown système ne fait que filtrer l'affichage côté client — pas de refetch.
-    const _needExtra = KNOWN_SYSTEMS.filter(s => s !== 'Stanton');
+    // L'endpoint Stanton couvre Stanton ET Pyro — on ne les refetch jamais.
+    // Seuls les systèmes hors couverture Stanton (ex: Nyx) ont besoin d'un fetch terminal par terminal.
+    const STANTON_COVERS = ['Stanton', 'Pyro'];
+    const _needExtra = KNOWN_SYSTEMS.filter(s => !STANTON_COVERS.includes(s)); // → ['Nyx', ...]
     const _missSys = [...new Set([
         ...[...sysMap.keys()].filter(s => _needExtra.includes(s) && !_coveredSys.has(s)),
         ..._needExtra.filter(s => !_coveredSys.has(s))
