@@ -946,10 +946,10 @@
                 <label class="lbl" data-i18n="filter.system">Système stellaire</label>
                 <div class="sel-wrap">
                     <select id="sysFilter">
-                        <option value="Stanton" selected>Stanton</option>
+                        <option value="Stanton">Stanton</option>
                         <option value="Pyro">Pyro</option>
                         <option value="Nyx">Nyx</option>
-                        <option value="" data-i18n="filter.allSystems">Tous les systèmes</option>
+                        <option value="" selected data-i18n="filter.allSystems">Tous les systèmes</option>
                     </select>
                 </div>
             </div>
@@ -1473,7 +1473,7 @@ async function apiFetch(endpoint){
     return j.data;
 }
 
-async function loadData(){
+async function loadData(selSys = ''){
     const ckey = 'sctrade_v2_all';
     try{
         const raw = localStorage.getItem(ckey);
@@ -1523,7 +1523,7 @@ async function loadData(){
         .join('') + `<option value="">${T('filter.allSystems')}</option>`;
     const _sysOpts = [...sysSelect.options];
     if(_sysOpts.some(o => o.value === prevSys)) sysSelect.value = prevSys;
-    else sysSelect.value = 'Stanton';
+    else sysSelect.value = ''; // défaut : tous les systèmes
 
     // 3) Prix — fetch via Stanton (l'endpoint UEX retourne TOUS les systèmes en une requête)
     setDot('busy',T('load.prices',{sys:'Stanton'}));
@@ -1575,10 +1575,14 @@ async function loadData(){
     // Pour les autres systèmes : cache séparé 1h + fetch séquentiel pour éviter
     // tout rate-limit (600 ms entre chaque terminal, 1 requête à la fois).
     const _coveredSys = new Set(prices.map(p=>p.star_system_name).filter(Boolean));
-    // Inclut aussi les KNOWN_SYSTEMS non détectés dans sysMap (ex: Nyx si terminaux sans id_star_system)
+    // Systèmes non couverts par le fetch Stanton : on ne charge que ce dont l'utilisateur a besoin.
+    // selSys='' → tous les systèmes ; selSys='Nyx' → seulement Nyx ; selSys='Stanton'/'Pyro' → rien de plus.
+    const _needExtra = selSys === '' ? KNOWN_SYSTEMS.filter(s => s !== 'Stanton')
+                     : (selSys !== 'Stanton' && selSys !== 'Pyro') ? [selSys]
+                     : [];
     const _missSys = [...new Set([
-        ...[...sysMap.keys()].filter(s => s !== 'Stanton' && !_coveredSys.has(s)),
-        ...KNOWN_SYSTEMS.filter(s => s !== 'Stanton' && !_coveredSys.has(s))
+        ...[...sysMap.keys()].filter(s => _needExtra.includes(s) && !_coveredSys.has(s)),
+        ..._needExtra.filter(s => !_coveredSys.has(s))
     ])];
     if(_missSys.length){
         // ── Tentative depuis le cache longue durée ───────────────────────
@@ -1607,7 +1611,7 @@ async function loadData(){
                 for(let i = 0; i < missTerms.length; i++){
                     setDot('busy', T('load.pricesProg', {done: i+1, total: missTerms.length}));
                     const res = await apiFetch(`commodities_prices/id_terminal/${missTerms[i].id}`)
-                        .catch(e => { if(e.isRateLimit) throw e; return []; });
+                        .catch(() => []); // rate limit ou erreur → on saute ce terminal
                     if(Array.isArray(res)){ _enrich(res); sysNewPrices.push(...res); }
                     if(i < missTerms.length - 1) await sleep(1000); // 1s entre chaque = ~60 req/min max
                 }
@@ -1861,7 +1865,7 @@ async function calculate(){
     showLoad(T('load.connect'));
 
     try{
-        const {prices, comms} = await loadData();
+        const {prices, comms} = await loadData(document.getElementById('sysFilter').value);
 
         setDot('busy',T('load.calc'));
         showLoad(T('load.routes'));
