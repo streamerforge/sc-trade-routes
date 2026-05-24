@@ -1775,7 +1775,7 @@ function calcRoutes(prices, comms, cfg){
         if(!sysRelevant(cfg.system, p.star_system_name)) continue;
 
         // Filtre station spatiale
-        if(cfg.spaceOnly && !p.space_station_name) continue;
+        if(cfg.spaceOnly && !p.space_station_name && p.planet_name) continue;
 
         const id = p.id_commodity;
         if(!byCom[id]){
@@ -1973,7 +1973,7 @@ function calcMultiHop(prices, comms, cfg){
     const termMap = {};
     for(const p of prices){
         if(!sysRelevant(cfg.system, p.star_system_name)) continue;
-        if(cfg.spaceOnly && !p.space_station_name) continue;
+        if(cfg.spaceOnly && !p.space_station_name && p.planet_name) continue;
         const tid = p.id_terminal;
         if(!termMap[tid]){
             termMap[tid] = {
