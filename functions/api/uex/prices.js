@@ -7,8 +7,8 @@
  *   - Pyro    : 5 min
  *   - Nyx     : 5 min
  *
- * Fetch terminal par terminal (10 en parallèle) — évite les endpoints
- * id_star_system qui requièrent des paramètres supplémentaires.
+ * Fetch terminal par terminal (10 en parallèle) — tous les champs
+ * de localisation inclus (space_station_name, outpost_name, etc.)
  *
  * Bindings requis (wrangler.toml) :
  *   UEX_CACHE   → KV namespace
@@ -21,7 +21,7 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const UEX_BASE   = 'https://api.uexcorp.uk/2.0';
+const UEX_BASE    = 'https://api.uexcorp.uk/2.0';
 const TTL_STANTON = 5 * 60;    // 5 min
 const TTL_PYRO    = 5 * 60;    // 5 min
 const TTL_NYX     = 5 * 60;    // 5 min
