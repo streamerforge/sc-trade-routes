@@ -3021,6 +3021,10 @@ function _openModal(){
     document.getElementById('vmSuccess').style.display = 'none';
 
     document.getElementById('vmHandle').value = localStorage.getItem('sf_rsi_handle') || '';
+    // Réactiver les boutons d'envoi (peuvent être désactivés après une soumission précédente)
+    ['vmSubmitSF','vmSubmitUEX','vmSubmitBoth'].forEach(id => {
+        const el = document.getElementById(id); if(el) el.disabled = false;
+    });
     document.getElementById('validateModal').style.display = 'flex';
 }
 
