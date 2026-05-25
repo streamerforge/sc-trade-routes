@@ -1696,8 +1696,7 @@ async function loadData(){
         } else {
             // Fallback : cargo terminals Stanton uniquement (5 par 5, 80ms)
             const stantonTerms = terminals.filter(t =>
-                t.star_system_name === 'Stanton' && t.is_available === 1 &&
-                (t.is_cargo_center===1 || t.has_freight_elevator===1 || t.has_loading_dock===1)
+                t.star_system_name === 'Stanton' && t.is_available === 1
             );
             stantonPrices = await fetchTermsBatch(stantonTerms, 'Stanton', 80);
             saveSysCache('Stanton', stantonPrices);
@@ -1707,8 +1706,7 @@ async function loadData(){
     // ── Chargement Pyro (si pas encore couvert) ──────────────────────
     if(!pyroPrices){
         const pyroTerms = terminals.filter(t =>
-            t.star_system_name === 'Pyro' && t.is_available === 1 &&
-            (t.is_cargo_center===1 || t.has_freight_elevator===1 || t.has_loading_dock===1)
+            t.star_system_name === 'Pyro' && t.is_available === 1
         );
         pyroPrices = await fetchTermsBatch(pyroTerms, 'Pyro', 5000);
         saveSysCache('Pyro', pyroPrices);
