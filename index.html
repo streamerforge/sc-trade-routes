@@ -29,22 +29,43 @@
     <meta name="twitter:description" content="Find the most profitable trade routes and circuits in Star Citizen. Real-time community data, multi-hop optimizer, instant profit calculator.">
     <meta name="twitter:image" content="https://www.streamerforge.com/preview.png">
     <style>
-        :root {
-            --bg-primary:   #07090f;
-            --bg-secondary: #0b1020;
-            --bg-card:      #0f1828;
-            --bg-input:     #08101a;
-            --border:       #182236;
-            --border-hi:    #253a55;
-            --cyan:         #00d4ff;
-            --cyan-dim:     rgba(0,212,255,.12);
+        /* ── THÈME SF (défaut) ── */
+        :root, [data-theme="sf"] {
+            --bg-primary:   #0a0704;
+            --bg-secondary: #100c07;
+            --bg-card:      #16100a;
+            --bg-input:     #0d0906;
+            --border:       #2a1c0f;
+            --border-hi:    #3f2a14;
+            --cyan:         #ff6920;
+            --cyan-dim:     rgba(255,105,32,.12);
             --purple:       #8b5cf6;
             --purple-dim:   rgba(139,92,246,.12);
-            --text:         #dce8f5;
-            --text-2:       #7a96b0;
-            --text-3:       #38506a;
+            --text:         #f0e4d0;
+            --text-2:       #9a8060;
+            --text-3:       #5a3e22;
             --green:        #10b981;
             --amber:        #f59e0b;
+            --red:          #ef4444;
+        }
+
+        /* ── THÈME BLACK HAWK ── */
+        [data-theme="bh"] {
+            --bg-primary:   #07080a;
+            --bg-secondary: #0c0e12;
+            --bg-card:      #111318;
+            --bg-input:     #090b0f;
+            --border:       #1e2030;
+            --border-hi:    #2e3348;
+            --cyan:         #d4aa3c;
+            --cyan-dim:     rgba(212,170,60,.12);
+            --purple:       #8b5cf6;
+            --purple-dim:   rgba(139,92,246,.12);
+            --text:         #e8e0cc;
+            --text-2:       #8a8070;
+            --text-3:       #3a3428;
+            --green:        #10b981;
+            --amber:        #d4aa3c;
             --red:          #ef4444;
         }
 
@@ -419,17 +440,17 @@
         .mh-wrap { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
 
         .mh-card {
-            background: rgba(15, 24, 40, 0.78); /* semi-transparent comme le tableau */
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 10px; overflow: hidden;
             transition: border-color .15s;
-            backdrop-filter: blur(2px); /* légère profondeur */
+            backdrop-filter: blur(2px);
         }
         .mh-card:hover { border-color: var(--border-hi); }
 
         .mh-head {
             padding: 10px 16px;
-            background: rgba(0,212,255,.05);
+            background: var(--cyan-dim);
             border-bottom: 1px solid var(--border);
             display: flex; align-items: center; gap: 12px;
         }
@@ -646,8 +667,8 @@
         .btn-validate-leg:hover { color: #fff; }
         .btn-validate-buy  { border-color: rgba(16,185,129,.35); color: var(--green); font-size:11px; padding:5px 8px; font-weight:600; }
         .btn-validate-buy:hover  { background: rgba(16,185,129,.15); border-color: var(--green); color:#fff; }
-        .btn-validate-sell { border-color: rgba(14,165,233,.35);  color: #0ea5e9;    font-size:11px; padding:5px 8px; font-weight:600; }
-        .btn-validate-sell:hover { background: rgba(14,165,233,.15); border-color: #0ea5e9; color:#fff; }
+        .btn-validate-sell { border-color: rgba(16,185,129,.35); color: var(--green); font-size:11px; padding:5px 8px; font-weight:600; }
+        .btn-validate-sell:hover { background: rgba(16,185,129,.15); border-color: var(--green); color:#fff; }
         .vm-saved-buy { background: rgba(16,185,129,.07); border: 1px solid rgba(16,185,129,.25); border-radius:6px; padding:8px 10px; margin-bottom:10px; font-size:11px; color:var(--green); }
         .vm-saved-buy strong { color:var(--text); }
 
@@ -655,7 +676,7 @@
         .leg-actions { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
         .btn-leg-refresh {
             background: none;
-            border: 1px solid rgba(0,212,255,.3);
+            border: 1px solid var(--cyan-dim);
             border-radius: 5px;
             color: var(--cyan);
             font-size: 10px; font-weight: 600; letter-spacing: .3px;
@@ -664,7 +685,7 @@
             transition: all .2s;
             width: 100%;
         }
-        .btn-leg-refresh:hover { background: rgba(0,212,255,.1); border-color: var(--cyan); }
+        .btn-leg-refresh:hover { background: var(--cyan-dim); border-color: var(--cyan); }
         .btn-leg-refresh:disabled { opacity: .4; cursor: not-allowed; }
         .leg-status { font-size: 10px; line-height: 1.5; }
         .btn-recalc-here {
@@ -814,7 +835,8 @@
         .btn-tuto-header:hover { background: rgba(0,212,255,.1); }
 
         /* Lang switcher */
-        .lang-switcher { display: flex; gap: 4px; }
+        .lang-switcher { display: flex; flex-direction: column; gap: 4px; }
+        .lang-row { display: flex; gap: 4px; }
         .lang-btn {
             background: none; border: 1px solid var(--border-hi);
             color: var(--text-3); font-size: 11px; font-weight: 700;
@@ -822,7 +844,15 @@
             transition: all .2s; letter-spacing: .5px;
         }
         .lang-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-        .lang-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,.1); }
+        .lang-btn.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+        .theme-btn {
+            flex: 1; background: none; border: 1px solid var(--border-hi);
+            color: var(--text-3); font-size: 10px; font-weight: 700;
+            padding: 3px 6px; border-radius: 4px; cursor: pointer;
+            transition: all .2s; letter-spacing: .3px; white-space: nowrap;
+        }
+        .theme-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+        .theme-btn.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
 
         /* Scrollbar */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -860,7 +890,12 @@
         <img src="./StreamerForge.png" alt="SF" style="height:48px;width:48px;object-fit:contain;border-radius:6px;flex-shrink:0;">
         <div>
             <h1 style="font-size:16px">SC Trade Routes <span style="color:#e67e22;font-size:12px;font-weight:600">by Streamer Forge</span> <span style="background:linear-gradient(90deg,#f59e0b,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:11px;font-weight:800;letter-spacing:2px">⚗ LABS</span></h1>
-            <div class="hd-sub"><span data-i18n="hd.sub">Optimiseur de routes — Star Citizen</span> &nbsp;·&nbsp; <em style="color:#8b5cf6" data-i18n="hd.motto">On ne naît pas streamer, on le devient.</em></div>
+            <div class="hd-sub" style="display:flex;align-items:center;gap:8px">
+                <span><span data-i18n="hd.sub">Optimiseur de routes — Star Citizen</span> &nbsp;·&nbsp; <em style="color:#8b5cf6" data-i18n="hd.motto">On ne naît pas streamer, on le devient.</em></span>
+                <span style="color:var(--text-3);font-size:9px;letter-spacing:.5px;text-transform:uppercase" data-i18n="nav.themes">Thèmes</span>
+                <button class="theme-btn active" id="themeSF" onclick="setTheme('sf')" title="Thème Streamer Forge">⚒️ SF</button>
+                <button class="theme-btn" id="themeBH" onclick="setTheme('bh')" title="Thème Black Hawk">🦅 BH</button>
+            </div>
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:12px">
@@ -871,11 +906,13 @@
         <button class="btn-tuto-header" onclick="openTuto()" data-i18n="nav.guide">❓ Guide</button>
         <a href="https://bhawk.fr/" target="_blank" rel="noopener" title="Black Hawk — Partenaire" style="display:flex;align-items:center;gap:7px;padding:4px 10px;background:rgba(212,170,60,.08);border:1px solid rgba(212,170,60,.3);border-radius:6px;text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(212,170,60,.18)'" onmouseout="this.style.background='rgba(212,170,60,.08)'">
             <img src="./BH.png" alt="Black Hawk" style="height:28px;object-fit:contain;border-radius:3px">
-            <span style="font-size:9px;color:rgba(212,170,60,.7);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap">Partenaire</span>
+            <span style="font-size:9px;color:rgba(212,170,60,.7);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap" data-i18n="nav.partner">Partenaire</span>
         </a>
         <div class="lang-switcher">
-            <button class="lang-btn active" data-lang="fr" onclick="setLang('fr')">FR</button>
-            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="lang-row">
+                <button class="lang-btn active" data-lang="fr" onclick="setLang('fr')">FR</button>
+                <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            </div>
         </div>
         <div class="api-badge"><div class="dot" id="dot"></div><span id="dotTxt" data-i18n="api.waiting">En attente</span></div>
     </div>
@@ -1156,7 +1193,7 @@ const S = {
 // ═══════════════════════════════════════════
 const TRANSLATIONS = {
   fr: {
-    'nav.guide':'❓ Guide','nav.join':'Rejoindre Streamer Forge',
+    'nav.guide':'❓ Guide','nav.join':'Rejoindre Streamer Forge','nav.partner':'Partenaire','nav.themes':'Thèmes',
     'api.waiting':'En attente','api.ok':'UEX en ligne','api.error':'Erreur API',
     'ship.title':'🚀 Vaisseau','ship.model':'Modèle','ship.capacity':'Capacité de cargaison',
     'ship.custom':'Valeur personnalisée :','ship.select':'— Sélectionner —',
@@ -1263,7 +1300,7 @@ const TRANSLATIONS = {
     'footer.credits':'Outil créé par <strong style="color:#e67e22">Vinyle</strong> &nbsp;·&nbsp; <a href="https://discord.gg/sUc27b6E8" target="_blank" style="color:#8b5cf6;font-weight:700">Streamer Forge</a>',
   },
   en: {
-    'nav.guide':'❓ Guide','nav.join':'Join Streamer Forge',
+    'nav.guide':'❓ Guide','nav.join':'Join Streamer Forge','nav.partner':'Partner','nav.themes':'Themes',
     'api.waiting':'Loading','api.ok':'UEX online','api.error':'API error',
     'ship.title':'🚀 Ship','ship.model':'Model','ship.capacity':'Cargo capacity',
     'ship.custom':'Custom value:','ship.select':'— Select —',
@@ -1413,6 +1450,23 @@ function setLang(lang){
     localStorage.setItem('sf_lang', lang);
     applyLang();
 }
+
+function setTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('sf_theme', theme);
+    document.getElementById('themeSF').classList.toggle('active', theme === 'sf');
+    document.getElementById('themeBH').classList.toggle('active', theme === 'bh');
+}
+
+// Appliquer le thème sauvegardé au chargement
+(function(){
+    const t = localStorage.getItem('sf_theme') || 'sf';
+    document.documentElement.setAttribute('data-theme', t);
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('themeSF').classList.toggle('active', t === 'sf');
+        document.getElementById('themeBH').classList.toggle('active', t === 'bh');
+    });
+})();
 
 // En local (file://) → appel direct UEX ; sur le site déployé (wrangler ou Cloudflare) → proxy
 const IS_LOCAL = location.protocol === 'file:';
