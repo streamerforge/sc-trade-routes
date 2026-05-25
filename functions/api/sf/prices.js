@@ -1,7 +1,7 @@
 /**
  * GET /api/sf/prices
  * Retourne les prix SF les plus récents par paire (terminal, commodité).
- * Cache 3 min côté client.
+ * Cache 30s côté client.
  * Binding requis : SF_DB (D1)
  */
 
@@ -53,7 +53,7 @@ export async function onRequest(context) {
     status: 200,
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=180',
+      'Cache-Control': 'public, max-age=30',
       ...CORS,
     },
   });
