@@ -1,14 +1,11 @@
 /**
  * GET /api/uex/prices
- * Retourne TOUS les prix UEX (Stanton + Pyro + Nyx) depuis le cache KV.
+ * Retourne tous les prix UEX (Stanton + Pyro + Nyx) depuis le cache KV.
  *
- * Cache indépendant par système :
- *   - Stanton : 5 min
- *   - Pyro    : 5 min
- *   - Nyx     : 5 min
- *
- * Fetch terminal par terminal (10 en parallèle) — tous les champs
- * de localisation inclus (space_station_name, outpost_name, etc.)
+ * Nouveau flux : 2 requêtes UEX en parallèle au lieu de ~50
+ *   1. /terminals              → metadata de localisation (tous les terminaux)
+ *   2. /commodities_prices_all → tous les prix bruts (id_terminal + prix)
+ *   → JOIN sur id_terminal, filtre sur systèmes connus
  *
  * Bindings requis (wrangler.toml) :
  *   UEX_CACHE   → KV namespace
@@ -21,11 +18,10 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const UEX_BASE    = 'https://api.uexcorp.uk/2.0';
-const TTL_STANTON = 5 * 60;    // 5 min
-const TTL_PYRO    = 5 * 60;    // 5 min
-const TTL_NYX     = 5 * 60;    // 5 min
-const BATCH       = 10;        // requêtes en parallèle (server-side, pas de CORS)
+const UEX_BASE = 'https://api.uexcorp.uk/2.0';
+const SYSTEMS  = new Set(['Stanton', 'Pyro', 'Nyx']);
+const TTL      = 5 * 60;       // 5 min cache KV
+const KV_KEY   = 'prices_v2';  // nouvelle clé (évite conflit avec l'ancienne v1)
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -41,13 +37,13 @@ export async function onRequest(context) {
     });
   }
 
+  // ── Helper fetch UEX ────────────────────────────────────────────────
   const uexHeaders = { 'Content-Type': 'application/json' };
   if (env.UEX_API_KEY) uexHeaders['secret-key'] = env.UEX_API_KEY;
 
-  // ── Helper fetch UEX ────────────────────────────────────────────────
-  async function uexGet(path) {
+  async function uexGet(endpoint) {
     try {
-      const r = await fetch(`${UEX_BASE}/${path}`, { headers: uexHeaders });
+      const r = await fetch(`${UEX_BASE}/${endpoint}`, { headers: uexHeaders });
       if (!r.ok) return [];
       const j = await r.json();
       return (j.status === 'ok' && Array.isArray(j.data)) ? j.data : [];
@@ -72,68 +68,51 @@ export async function onRequest(context) {
     } catch {}
   }
 
-  // ── Fetch prix pour une liste de terminaux (10 en //) ───────────────
-  async function fetchByTerminals(terms) {
-    const collected = [];
-    for (let i = 0; i < terms.length; i += BATCH) {
-      const batch = terms.slice(i, i + BATCH);
-      const results = await Promise.all(
-        batch.map(t => uexGet(`commodities_prices/id_terminal/${t.id}`))
-      );
-      results.forEach(r => { if (Array.isArray(r)) collected.push(...r); });
+  // ── 1. Cache global ─────────────────────────────────────────────────
+  let allPrices = await kvGet(KV_KEY, TTL);
+
+  // ── 2. Rebuild si expiré ────────────────────────────────────────────
+  if (!allPrices) {
+    // 2 requêtes en parallèle
+    const [terminals, rawPrices] = await Promise.all([
+      uexGet('terminals'),
+      uexGet('commodities_prices_all'),
+    ]);
+
+    // Map id_terminal → metadata localisation (systèmes voulus uniquement)
+    const termMap = new Map();
+    for (const t of terminals) {
+      if (t.is_available === 1 && SYSTEMS.has(t.star_system_name)) {
+        termMap.set(t.id, t);
+      }
     }
-    return collected;
+
+    // JOIN : enrichir chaque prix + filtrer sur systèmes connus
+    allPrices = [];
+    for (const p of rawPrices) {
+      const t = termMap.get(p.id_terminal);
+      if (!t) continue; // hors systèmes voulus ou terminal indisponible
+      allPrices.push({
+        ...p,
+        star_system_name:   t.star_system_name   || null,
+        planet_name:        t.planet_name        || null,
+        orbit_name:         t.orbit_name         || null,
+        moon_name:          t.moon_name          || null,
+        space_station_name: t.space_station_name || null,
+        outpost_name:       t.outpost_name       || null,
+        city_name:          t.city_name          || null,
+      });
+    }
+
+    await kvSet(KV_KEY, allPrices, TTL);
   }
-
-  // ── 1. Vérifier les 3 caches ────────────────────────────────────────
-  let stanton = await kvGet('prices_stanton', TTL_STANTON);
-  let pyro    = await kvGet('prices_pyro',    TTL_PYRO);
-  let nyx     = await kvGet('prices_nyx',     TTL_NYX);
-
-  // ── 2. Fetch terminaux si au moins 1 système périmé ─────────────────
-  let allTerminals = null;
-  if (!stanton || !pyro || !nyx) {
-    allTerminals = await uexGet('terminals');
-  }
-
-  // ── 3. Stanton ──────────────────────────────────────────────────────
-  if (!stanton) {
-    const terms = allTerminals.filter(t =>
-      t.star_system_name === 'Stanton' && t.is_available === 1
-    );
-    stanton = await fetchByTerminals(terms);
-    await kvSet('prices_stanton', stanton, TTL_STANTON);
-  }
-
-  // ── 4. Pyro ─────────────────────────────────────────────────────────
-  if (!pyro) {
-    const terms = allTerminals.filter(t =>
-      t.star_system_name === 'Pyro' && t.is_available === 1
-    );
-    pyro = await fetchByTerminals(terms);
-    await kvSet('prices_pyro', pyro, TTL_PYRO);
-  }
-
-  // ── 5. Nyx ──────────────────────────────────────────────────────────
-  if (!nyx) {
-    const terms = allTerminals.filter(t =>
-      t.star_system_name === 'Nyx' && t.is_available === 1
-    );
-    nyx = await fetchByTerminals(terms);
-    await kvSet('prices_nyx', nyx, TTL_NYX);
-  }
-
-  // ── 6. Combinaison ──────────────────────────────────────────────────
-  const allPrices = [...(stanton || []), ...(pyro || []), ...(nyx || [])];
 
   return new Response(JSON.stringify({ status: 'ok', data: allPrices }), {
     status: 200,
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store',
-      'X-Cache-Stanton': stanton?.length ?? 0,
-      'X-Cache-Pyro':    pyro?.length    ?? 0,
-      'X-Cache-Nyx':     nyx?.length     ?? 0,
+      'X-Cache-Count': allPrices?.length ?? 0,
       ...CORS,
     },
   });
