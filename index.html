@@ -303,10 +303,7 @@
             padding: 8px 16px;
             border-bottom: 1px solid var(--border);
             display: flex; align-items: center; gap: 10px;
-            overflow-x: auto; -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
         }
-        .filter-bar::-webkit-scrollbar { display: none; }
         .filter-bar input[type=text] {
             width: 280px;
             background: var(--bg-input);
@@ -416,7 +413,7 @@
         }
 
         /* ── TABS ── */
-        .tabs { display: flex; gap: 0; margin-left: auto; flex-shrink: 0; }
+        .tabs { display: flex; gap: 0; margin-left: auto; }
         .tab-btn {
             padding: 5px 14px;
             background: none;
