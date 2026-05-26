@@ -303,7 +303,10 @@
             padding: 8px 16px;
             border-bottom: 1px solid var(--border);
             display: flex; align-items: center; gap: 10px;
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
+        .filter-bar::-webkit-scrollbar { display: none; }
         .filter-bar input[type=text] {
             width: 280px;
             background: var(--bg-input);
@@ -435,18 +438,6 @@
         .fresh-select:hover { border-color: var(--border-hi); }
         .fresh-select.active { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,.08); }
         .tab-btn:not(.active):hover { border-color: var(--border-hi); color: var(--text); }
-
-        /* ── MOBILE : filter-bar scrollable horizontalement ── */
-        @media (max-width: 900px) {
-            .filter-bar {
-                overflow-x: auto;
-                overflow-y: visible;
-                -webkit-overflow-scrolling: touch;
-                flex-wrap: nowrap;
-                scrollbar-width: none;
-            }
-            .filter-bar::-webkit-scrollbar { display: none; }
-        }
 
         /* ── CIRCUITS MULTI-ÉTAPES ── */
         .mh-wrap { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
