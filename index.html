@@ -3384,7 +3384,7 @@ async function submitValidate(target = 'both', forceSubmit = false){
 const TUTO_STEPS_FR = [
   {
     icon: '🚀',
-    label: 'Étape 1 sur 6',
+    label: 'Étape 1 sur 7',
     title: 'Bienvenue sur SC Trade Routes',
     desc: `Cet outil calcule les <strong>meilleures routes commerciales</strong> de Star Citizen en temps réel, grâce aux données communautaires <span class="hl-cyan">UEX Corp</span>.<br><br>
 En quelques clics, tu sais <strong>quoi acheter, où, et à qui vendre</strong> pour maximiser ton profit par heure de jeu.<br><br>
@@ -3392,8 +3392,18 @@ Ce guide te montre comment utiliser l'outil <strong>dans le bon ordre</strong> p
     tip: '💡 Les données proviennent des joueurs eux-mêmes. Plus tu valides tes trades, plus les données sont précises pour tout le monde.'
   },
   {
+    icon: '🎨',
+    label: 'Étape 2 sur 7',
+    title: 'Choisis ton thème',
+    desc: `L'outil propose <strong>deux thèmes visuels</strong>, sélectionnables directement dans le header :<br><br>
+<strong>⚒️ SF</strong> — Le thème <span class="hl-cyan">Streamer Forge</span>. Ambiance sombre avec des accents orange, style industriel sci-fi. Thème par défaut.<br><br>
+<strong>🦅 BH</strong> — Le thème <span class="hl-cyan">Black Hawk</span>. Fond noir profond avec des accents dorés, style militaire élite.<br><br>
+Le thème est <strong>sauvegardé automatiquement</strong> dans ton navigateur — il sera appliqué à chaque visite.`,
+    tip: '💡 Ton thème préféré est mémorisé localement. Tu peux en changer à tout moment sans perdre tes réglages.'
+  },
+  {
     icon: '⚙️',
-    label: 'Étape 2 sur 6',
+    label: 'Étape 3 sur 7',
     title: 'Configure ton vaisseau et ton budget',
     desc: `Commence par renseigner deux informations essentielles dans le panneau de gauche :<br><br>
 <strong>🚀 Vaisseau</strong> — Sélectionne ton modèle dans la liste. La capacité cargo se remplit automatiquement. Si ton vaisseau n'est pas dans la liste, coche <em>"Valeur personnalisée"</em> et saisis ton SCU manuellement.<br><br>
@@ -3403,7 +3413,7 @@ Ce guide te montre comment utiliser l'outil <strong>dans le bon ordre</strong> p
   },
   {
     icon: '🔍',
-    label: 'Étape 3 sur 6',
+    label: 'Étape 4 sur 7',
     title: 'Calcule tes routes',
     desc: `Clique sur <span class="hl-cyan">⚡ Calculer les routes</span> pour lancer l'analyse.<br><br>
 Tu as deux modes de vue :<br><br>
@@ -3420,7 +3430,7 @@ Filtre fraîcheur :<br><br>
   },
   {
     icon: '📊',
-    label: 'Étape 4 sur 6',
+    label: 'Étape 5 sur 7',
     title: 'Lis les résultats et pars en jeu',
     desc: `Chaque route indique :<br><br>
 <strong>📦 Stock</strong> — Ce qui est disponible à l'achat. La barre montre le niveau de remplissage du terminal.<br>
@@ -3432,7 +3442,7 @@ Sur les <strong>circuits</strong>, clique <span class="hl-cyan">🔄 Actualiser 
   },
   {
     icon: '🛒',
-    label: 'Étape 5 sur 6 — LA PLUS IMPORTANTE',
+    label: 'Étape 6 sur 7 — LA PLUS IMPORTANTE',
     title: 'Valide ton trade en 1 étape',
     desc: `La validation se fait <strong>en une seule fois</strong>, une fois le trade terminé.<br><br>
 Clique le bouton <span class="hl-green">✅ Valider</span> sur la route ou le leg de circuit. Un formulaire complet s'ouvre :<br><br>
@@ -3447,7 +3457,7 @@ Clique le bouton <span class="hl-green">✅ Valider</span> sur la route ou le le
   },
   {
     icon: '🎯',
-    label: 'Étape 6 sur 6',
+    label: 'Étape 7 sur 7',
     title: 'Tu es prêt !',
     desc: `Voici le workflow idéal à suivre à chaque session :<br><br>
 <span class="hl-cyan">1.</span> Configure vaisseau + budget<br>
@@ -3463,7 +3473,7 @@ Le bouton <strong>❓ Guide</strong> dans le header te ramène ici à tout momen
 
 const TUTO_STEPS_EN = [
   {
-    icon: '🚀', label: 'Step 1 of 6',
+    icon: '🚀', label: 'Step 1 of 7',
     title: 'Welcome to SC Trade Routes',
     desc: `This tool calculates the <strong>best trading routes</strong> in Star Citizen in real-time, powered by community data from <span class="hl-cyan">UEX Corp</span>.<br><br>
 In a few clicks, you'll know <strong>what to buy, where, and where to sell</strong> to maximize your profit per hour of gameplay.<br><br>
@@ -3471,7 +3481,16 @@ This guide shows you how to use the tool <strong>in the right order</strong> to 
     tip: '💡 Data comes from players themselves. The more you validate your trades, the more accurate the data is for everyone.'
   },
   {
-    icon: '⚙️', label: 'Step 2 of 6',
+    icon: '🎨', label: 'Step 2 of 7',
+    title: 'Choose your theme',
+    desc: `The tool offers <strong>two visual themes</strong>, selectable directly in the header:<br><br>
+<strong>⚒️ SF</strong> — The <span class="hl-cyan">Streamer Forge</span> theme. Dark background with orange accents, sci-fi industrial style. Default theme.<br><br>
+<strong>🦅 BH</strong> — The <span class="hl-cyan">Black Hawk</span> theme. Deep black background with golden accents, elite military style.<br><br>
+Your theme is <strong>automatically saved</strong> in your browser — it will be applied on every visit.`,
+    tip: '💡 Your preferred theme is stored locally. You can switch at any time without losing your settings.'
+  },
+  {
+    icon: '⚙️', label: 'Step 3 of 7',
     title: 'Set up your ship and budget',
     desc: `Start by filling in two key pieces of information in the left panel:<br><br>
 <strong>🚀 Ship</strong> — Select your model from the list. Cargo capacity fills in automatically. If your ship isn't listed, check <em>"Custom value"</em> and enter your SCU manually.<br><br>
@@ -3480,7 +3499,7 @@ This guide shows you how to use the tool <strong>in the right order</strong> to 
     tipColor: 'amber'
   },
   {
-    icon: '🔍', label: 'Step 3 of 6',
+    icon: '🔍', label: 'Step 4 of 7',
     title: 'Calculate your routes',
     desc: `Click <span class="hl-cyan">⚡ Calculate routes</span> to start the analysis.<br><br>
 You have two view modes:<br><br>
@@ -3496,7 +3515,7 @@ Freshness filter:<br><br>
     tip: '💡 The first time, loading takes a few seconds. Then data is cached for 5 minutes for instant recalculations.'
   },
   {
-    icon: '📊', label: 'Step 4 of 6',
+    icon: '📊', label: 'Step 5 of 7',
     title: 'Read the results and head in-game',
     desc: `Each route shows:<br><br>
 <strong>📦 Stock</strong> — Available to buy. The bar shows the terminal fill level.<br>
@@ -3507,7 +3526,7 @@ On <strong>circuits</strong>, click <span class="hl-cyan">🔄 Refresh stock</sp
     tipColor: 'cyan'
   },
   {
-    icon: '🛒', label: 'Step 5 of 6 — MOST IMPORTANT',
+    icon: '🛒', label: 'Step 6 of 7 — MOST IMPORTANT',
     title: 'Validate your trade in 1 step',
     desc: `Validation happens <strong>all at once</strong>, once the trade is done.<br><br>
 Click the <span class="hl-green">✅ Validate</span> button on the route or circuit leg. A full form opens:<br><br>
@@ -3521,7 +3540,7 @@ Click the <span class="hl-green">✅ Validate</span> button on the route or circ
     tipColor: 'green'
   },
   {
-    icon: '🎯', label: 'Step 6 of 6',
+    icon: '🎯', label: 'Step 7 of 7',
     title: 'You\'re ready!',
     desc: `Here\'s the ideal workflow to follow each session:<br><br>
 <span class="hl-cyan">1.</span> Set up ship + budget<br>
