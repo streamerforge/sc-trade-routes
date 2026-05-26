@@ -574,7 +574,8 @@
         .mh-step-n { font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
                      text-transform: uppercase; color: var(--text-2); margin-bottom: 5px; }
         .mh-from   { font-size: 14px; font-weight: 700; color: var(--text);
-                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                     display: flex; align-items: center; gap: 4px; }
+        .mh-from-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
         .mh-loc    { font-size: 11px; color: var(--text-2); margin-bottom: 5px;
                      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .mh-action { font-size: 11px; color: var(--text-2); margin: 3px 0; }
@@ -588,7 +589,8 @@
                      cursor: default; white-space: nowrap; }
         .mh-invest { font-size: 13px; font-weight: 700; color: #a0c8ff; margin: 3px 0 6px; }
         .mh-to     { font-size: 14px; font-weight: 700; color: var(--text);
-                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                     display: flex; align-items: center; gap: 4px; }
+        .mh-to-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
         .mh-sell-p { font-size: 11px; color: var(--text-2); margin-bottom: 3px; }
         .mh-profit { font-size: 16px; font-weight: 800; margin-top: 5px; }
 
@@ -2342,7 +2344,7 @@ function renderMultiHop(chains){
                 </div>` : '';
             return `<div class="mh-leg" style="${retStyle}">
                 ${stepLbl}
-                <div class="mh-from" title="${esc(leg.fromName)}">${esc(leg.fromName)}<button class="btn-setpos" onclick="setPosition('${esc2(leg.fromName)}')" title="${T('card.setpos')}">${T('card.setpos')}</button></div>
+                <div class="mh-from" title="${esc(leg.fromName)}"><span class="mh-from-txt">${esc(leg.fromName)}</span><button class="btn-setpos" onclick="setPosition('${esc2(leg.fromName)}')" title="${T('card.setpos')}">${T('card.setpos')}</button></div>
                 <div class="mh-loc">${esc(leg.fromLoc)}</div>
                 <div class="mh-action">${T('card.legBuy')}</div>
                 <div class="mh-comm" title="${esc(leg.commodity)}">${esc(leg.commodity)}${ill}</div>
@@ -2351,7 +2353,7 @@ function renderMultiHop(chains){
                 </div>
                 <div class="mh-invest">💵 ${fmtAuec(leg.investment)}</div>
                 <div class="mh-action">${T('card.legSell')}</div>
-                <div class="mh-to" title="${esc(leg.toName)}">${esc(leg.toName)}<button class="btn-setpos" onclick="setPosition('${esc2(leg.toName)}')" title="${T('card.setpos')}">${T('card.setpos')}</button></div>
+                <div class="mh-to" title="${esc(leg.toName)}"><span class="mh-to-txt">${esc(leg.toName)}</span><button class="btn-setpos" onclick="setPosition('${esc2(leg.toName)}')" title="${T('card.setpos')}">${T('card.setpos')}</button></div>
                 <div class="mh-sell-p">${leg.buyPrice.toLocaleString()} → ${leg.sellPrice.toLocaleString()} aUEC/SCU ${freshBadge(leg.buyUpdated)} ${sourceBadge(leg.source)}</div>
                 <div class="mh-profit ${pCls}">+${fmtAuec(leg.legProfit)}</div>
                 ${stockBar(leg.stockCur, leg.stockMax, '📦', T('card.stockLabel'))}
