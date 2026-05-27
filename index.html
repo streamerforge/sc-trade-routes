@@ -58,6 +58,26 @@
             --red:          #ef4444;
         }
 
+        /* ── THÈME CLASSIC (couleurs d'origine cyan/bleu) ── */
+        [data-theme="classic"] {
+            --bg-primary:   #07090f;
+            --bg-secondary: #0b1020;
+            --bg-card:      #0f1828;
+            --bg-input:     #08101a;
+            --border:       #182236;
+            --border-hi:    #253a55;
+            --cyan:         #00d4ff;
+            --cyan-dim:     rgba(0,212,255,.12);
+            --purple:       #8b5cf6;
+            --purple-dim:   rgba(139,92,246,.12);
+            --text:         #dce8f5;
+            --text-2:       #7a96b0;
+            --text-3:       #38506a;
+            --green:        #10b981;
+            --amber:        #f59e0b;
+            --red:          #ef4444;
+        }
+
         /* ── THÈME BLACK HAWK ── */
         [data-theme="bh"] {
             --bg-primary:   #07080a;
@@ -906,6 +926,7 @@
                 <span style="color:var(--text-3);font-size:9px;letter-spacing:.5px;text-transform:uppercase" data-i18n="nav.themes">Thèmes</span>
                 <button class="theme-btn active" id="themeSF" onclick="setTheme('sf')" title="Thème Streamer Forge">⚒️ SF</button>
                 <button class="theme-btn" id="themeBH" onclick="setTheme('bh')" title="Thème Black Hawk">🦅 BH</button>
+                <button class="theme-btn" id="themeClassic" onclick="setTheme('classic')" title="Thème Classic">🌌 Classic</button>
             </div>
         </div>
     </div>
@@ -1467,6 +1488,7 @@ function setTheme(theme){
     localStorage.setItem('sf_theme', theme);
     document.getElementById('themeSF').classList.toggle('active', theme === 'sf');
     document.getElementById('themeBH').classList.toggle('active', theme === 'bh');
+    document.getElementById('themeClassic').classList.toggle('active', theme === 'classic');
 }
 
 // Appliquer le thème sauvegardé au chargement
@@ -1476,6 +1498,7 @@ function setTheme(theme){
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('themeSF').classList.toggle('active', t === 'sf');
         document.getElementById('themeBH').classList.toggle('active', t === 'bh');
+        document.getElementById('themeClassic').classList.toggle('active', t === 'classic');
     });
 })();
 
@@ -3404,9 +3427,10 @@ Ce guide te montre comment utiliser l'outil <strong>dans le bon ordre</strong> p
     icon: '🎨',
     label: 'Étape 2 sur 7',
     title: 'Choisis ton thème',
-    desc: `L'outil propose <strong>deux thèmes visuels</strong>, sélectionnables directement dans le header :<br><br>
+    desc: `L'outil propose <strong>trois thèmes visuels</strong>, sélectionnables directement dans le header :<br><br>
 <strong>⚒️ SF</strong> — Le thème <span class="hl-cyan">Streamer Forge</span>. Ambiance sombre avec des accents orange, style industriel sci-fi. Thème par défaut.<br><br>
 <strong>🦅 BH</strong> — Le thème <span class="hl-cyan">Black Hawk</span>. Fond noir profond avec des accents dorés, style militaire élite.<br><br>
+<strong>🌌 Classic</strong> — Le thème <span class="hl-cyan">Classic</span>. Les couleurs d'origine : fond bleu nuit, accents cyan vif, ambiance Star Citizen pure.<br><br>
 Le thème est <strong>sauvegardé automatiquement</strong> dans ton navigateur — il sera appliqué à chaque visite.`,
     tip: '💡 Ton thème préféré est mémorisé localement. Tu peux en changer à tout moment sans perdre tes réglages.'
   },
@@ -3492,9 +3516,10 @@ This guide shows you how to use the tool <strong>in the right order</strong> to 
   {
     icon: '🎨', label: 'Step 2 of 7',
     title: 'Choose your theme',
-    desc: `The tool offers <strong>two visual themes</strong>, selectable directly in the header:<br><br>
+    desc: `The tool offers <strong>three visual themes</strong>, selectable directly in the header:<br><br>
 <strong>⚒️ SF</strong> — The <span class="hl-cyan">Streamer Forge</span> theme. Dark background with orange accents, sci-fi industrial style. Default theme.<br><br>
 <strong>🦅 BH</strong> — The <span class="hl-cyan">Black Hawk</span> theme. Deep black background with golden accents, elite military style.<br><br>
+<strong>🌌 Classic</strong> — The <span class="hl-cyan">Classic</span> theme. The original colors: deep blue night background, bright cyan accents, pure Star Citizen vibes.<br><br>
 Your theme is <strong>automatically saved</strong> in your browser — it will be applied on every visit.`,
     tip: '💡 Your preferred theme is stored locally. You can switch at any time without losing your settings.'
   },
