@@ -58,19 +58,19 @@
             --red:          #ef4444;
         }
 
-        /* ── THÈME CLASSIC (couleurs d'origine cyan/bleu) ── */
+        /* ── THÈME CLASSIC (couleurs StarTrad) ── */
         [data-theme="classic"] {
-            --bg-primary:   #07090f;
-            --bg-secondary: #0b1020;
-            --bg-card:      #0f1828;
-            --bg-input:     #08101a;
-            --border:       #182236;
-            --border-hi:    #253a55;
-            --cyan:         #00d4ff;
-            --cyan-dim:     rgba(0,212,255,.12);
+            --bg-primary:   #0d1117;
+            --bg-secondary: #111827;
+            --bg-card:      #1a2233;
+            --bg-input:     #0b0f1a;
+            --border:       #1e2d40;
+            --border-hi:    #2a3f58;
+            --cyan:         #00c8d4;
+            --cyan-dim:     rgba(0,200,212,.12);
             --purple:       #8b5cf6;
             --purple-dim:   rgba(139,92,246,.12);
-            --text:         #dce8f5;
+            --text:         #e2e8f0;
             --text-2:       #7a96b0;
             --text-3:       #38506a;
             --green:        #10b981;
@@ -885,6 +885,68 @@
         .theme-btn:hover { border-color: var(--cyan); color: var(--cyan); }
         .theme-btn.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
 
+        /* ── EXPLORER COMMODITÉS / STATIONS ── */
+        .explorer-wrap { padding: 16px; height: 100%; overflow-y: auto; }
+        .explorer-search-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+        .explorer-search-box { position: relative; flex: 1; }
+        .explorer-filter {
+            width: 100%; background: var(--bg-input); border: 1px solid var(--border-hi);
+            color: var(--text); padding: 9px 13px; border-radius: 6px;
+            font-size: 13px; outline: none; box-sizing: border-box;
+        }
+        .explorer-filter:focus { border-color: var(--cyan); }
+        .explorer-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 200;
+            background: var(--bg-card); border: 1px solid var(--border-hi);
+            border-top: none; border-radius: 0 0 6px 6px;
+            max-height: 240px; overflow-y: auto; display: none;
+        }
+        .explorer-dropdown.open { display: block; }
+        .explorer-dd-item {
+            padding: 8px 13px; font-size: 12px; color: var(--text);
+            cursor: pointer; border-bottom: 1px solid var(--border);
+        }
+        .explorer-dd-item:last-child { border-bottom: none; }
+        .explorer-dd-item:hover { background: var(--bg-secondary); color: var(--cyan); }
+        .explorer-selected { font-size: 12px; color: var(--cyan); font-weight: 700; padding: 2px 4px; white-space: nowrap; }
+        .explorer-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .explorer-col-title {
+            font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--cyan);
+            margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+        }
+        .explorer-count {
+            font-size: 10px; font-weight: 600; color: var(--text-2);
+            background: var(--bg-secondary); padding: 2px 7px;
+            border-radius: 10px; letter-spacing: 0;
+        }
+        .explorer-empty { font-size: 12px; color: var(--text-3); padding: 20px; text-align: center; }
+        .explorer-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px 13px; margin-bottom: 8px;
+            transition: border-color .15s;
+        }
+        .explorer-card:hover { border-color: var(--border-hi); }
+        .explorer-card-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+        .explorer-card-loc  { font-size: 10px; color: var(--text-2); margin-bottom: 6px; }
+        .explorer-card-price { font-size: 13px; font-weight: 800; color: var(--cyan); margin-bottom: 5px; }
+        .explorer-stock-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 4px; }
+        .explorer-stock-bar { height: 100%; background: var(--cyan); border-radius: 2px; transition: width .3s; }
+        .explorer-card-stock { font-size: 10px; color: var(--text-2); }
+        .explorer-row {
+            display: grid; grid-template-columns: 1fr auto auto auto;
+            gap: 8px; align-items: center;
+            padding: 8px 10px; border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+        .explorer-row:last-child { border-bottom: none; }
+        .explorer-row:hover { background: var(--bg-secondary); }
+        .explorer-row-name { color: var(--text); font-weight: 600; }
+        .explorer-row-price { color: var(--cyan); font-weight: 700; white-space: nowrap; }
+        .explorer-row-stock-wrap { width: 60px; height: 4px; background: var(--border); border-radius: 2px; }
+        .explorer-row-stock-bar { height: 100%; background: var(--cyan); border-radius: 2px; }
+        .explorer-row-stock { font-size: 10px; color: var(--text-2); white-space: nowrap; }
+
         /* Scrollbar */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
@@ -925,8 +987,8 @@
                 <span><span data-i18n="hd.sub">Optimiseur de routes — Star Citizen</span> &nbsp;·&nbsp; <em style="color:#8b5cf6" data-i18n="hd.motto">On ne naît pas streamer, on le devient.</em></span>
                 <span style="color:var(--text-3);font-size:9px;letter-spacing:.5px;text-transform:uppercase" data-i18n="nav.themes">Thèmes</span>
                 <button class="theme-btn active" id="themeSF" onclick="setTheme('sf')" title="Thème Streamer Forge">⚒️ SF</button>
-                <button class="theme-btn" id="themeBH" onclick="setTheme('bh')" title="Thème Black Hawk">🦅 BH</button>
-                <button class="theme-btn" id="themeClassic" onclick="setTheme('classic')" title="Thème Classic">🌌 Classic</button>
+                <button class="theme-btn" id="themeBH" onclick="setTheme('bh')" title="Thème Black Hawk"><img src="./logoBH.png" style="height:13px;width:13px;object-fit:contain;vertical-align:middle;border-radius:2px"> BH</button>
+                <button class="theme-btn" id="themeClassic" onclick="setTheme('classic')" title="Thème Classic"><img src="./logostartrad.png" style="height:13px;width:13px;object-fit:contain;vertical-align:middle;border-radius:2px"> ST</button>
             </div>
         </div>
     </div>
@@ -939,6 +1001,10 @@
         <a href="https://bhawk.fr/" target="_blank" rel="noopener" title="Black Hawk — Partenaire" style="display:flex;align-items:center;gap:7px;padding:4px 10px;background:rgba(212,170,60,.08);border:1px solid rgba(212,170,60,.3);border-radius:6px;text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(212,170,60,.18)'" onmouseout="this.style.background='rgba(212,170,60,.08)'">
             <img src="./BH.png" alt="Black Hawk" style="height:28px;object-fit:contain;border-radius:3px">
             <span style="font-size:9px;color:rgba(212,170,60,.7);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap" data-i18n="nav.partner">Partenaire</span>
+        </a>
+        <a href="https://startrad.link/" target="_blank" rel="noopener" title="StarTrad FR — Partenaire" style="display:flex;align-items:center;gap:7px;padding:4px 10px;background:rgba(0,200,212,.08);border:1px solid rgba(0,200,212,.3);border-radius:6px;text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(0,200,212,.18)'" onmouseout="this.style.background='rgba(0,200,212,.08)'">
+            <img src="./logostartrad-partenaire.png" alt="StarTrad FR" style="height:28px;object-fit:contain;border-radius:3px">
+            <span style="font-size:9px;color:rgba(0,200,212,.7);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap" data-i18n="nav.partner">Partenaire</span>
         </a>
         <div class="lang-switcher">
             <div class="lang-row">
@@ -1142,8 +1208,10 @@
                     <button class="tab-btn"         id="stockDispo" onclick="switchStockMode('dispo')" data-i18n="stock.dispo">📦 Stock dispo</button>
                 </div>
                 <div class="tabs">
-                    <button class="tab-btn active" id="tabSimple"  onclick="switchTab('simple')" data-i18n="results.tabSimple">Trajets simples</button>
+                    <button class="tab-btn active" id="tabSimple"  onclick="switchTab('simple')"  data-i18n="results.tabSimple">Trajets simples</button>
                     <button class="tab-btn"         id="tabCircuit" onclick="switchTab('circuit')" data-i18n="results.tabCircuit">⟳ Circuits</button>
+                    <button class="tab-btn"         id="tabComm"    onclick="switchTab('comm')"    data-i18n="results.tabComm">📦 Commodités</button>
+                    <button class="tab-btn"         id="tabStation" onclick="switchTab('station')" data-i18n="results.tabStation">🏪 Stations</button>
                 </div>
             </div>
         </div>
@@ -1245,7 +1313,7 @@ const TRANSLATIONS = {
     'pos.hint':'Les routes partiront uniquement de ce terminal',
     'calc.button':'⚡ Calculer les routes',
     'results.search':'🔍  Filtrer commodité / terminal…',
-    'results.tabSimple':'Trajets simples','results.tabCircuit':'⟳ Circuits',
+    'results.tabSimple':'Trajets simples','results.tabCircuit':'⟳ Circuits','results.tabComm':'📦 Marchandises','results.tabStation':'🏪 Stations',
     'card.setpos':'📍 Je suis ici','card.discord':'📋 Discord',
     'card.refresh':'🔄 Actualiser le stock','card.refreshTitle':'Vérifie le stock en temps réel avant d\'y aller',
     'card.validateBuy':'J\'ai acheté','card.validateBuyTitle':'J\'achète ici — sauvegarder le prix et le stock',
@@ -1352,7 +1420,7 @@ const TRANSLATIONS = {
     'pos.hint':'Routes will only start from this terminal',
     'calc.button':'⚡ Calculate routes',
     'results.search':'🔍  Filter commodity / terminal…',
-    'results.tabSimple':'Simple routes','results.tabCircuit':'⟳ Circuits',
+    'results.tabSimple':'Simple routes','results.tabCircuit':'⟳ Circuits','results.tabComm':'📦 Commodities','results.tabStation':'🏪 Stations',
     'card.setpos':'📍 I\'m here','card.discord':'📋 Discord',
     'card.refresh':'🔄 Refresh stock','card.refreshTitle':'Check stock in real-time before going',
     'card.validateBuy':'I bought','card.validateBuyTitle':'I\'m buying here — save price and stock',
@@ -2498,12 +2566,212 @@ function switchDataSource(src){
 
 function switchTab(mode){
     S.mode = mode;
-    document.getElementById('tabSimple').classList.toggle('active',  mode==='simple');
-    document.getElementById('tabCircuit').classList.toggle('active', mode==='circuit');
+    document.getElementById('tabSimple').classList.toggle('active',   mode==='simple');
+    document.getElementById('tabCircuit').classList.toggle('active',  mode==='circuit');
+    document.getElementById('tabComm').classList.toggle('active',     mode==='comm');
+    document.getElementById('tabStation').classList.toggle('active',  mode==='station');
     document.getElementById('search').style.display = mode==='simple' ? '' : 'none';
 
-    if(mode==='simple')  renderTable(S.filtered);
-    else                 renderMultiHop(S.circuits);
+    if(mode==='simple')       renderTable(S.filtered);
+    else if(mode==='circuit') renderMultiHop(S.circuits);
+    else if(mode==='comm')    renderCommExplorer();
+    else if(mode==='station') renderStationExplorer();
+}
+
+// ═══════════════════════════════════════════
+//  EXPLORER COMMODITÉS
+// ═══════════════════════════════════════════
+function renderCommExplorer(){
+    const wrap = document.getElementById('tblWrap');
+    const prices = S.prices || [];
+    const lang = _lang === 'en';
+
+    if(!prices.length){
+        wrap.innerHTML = `<div class="state-box">
+            <div class="state-title">📦 ${lang?'Commodity Explorer':'Explorateur de marchandises'}</div>
+            <div class="state-sub">${lang?'Calculate routes first to load data.':'Lance d\'abord un calcul de routes pour charger les données.'}</div>
+        </div>`;
+        return;
+    }
+
+    const comms = {};
+    for(const p of prices){
+        if(p.commodity_name && !comms[p.id_commodity])
+            comms[p.id_commodity] = { id: p.id_commodity, name: p.commodity_name };
+    }
+    const commList = Object.values(comms).sort((a,b)=>a.name.localeCompare(b.name));
+
+    wrap.innerHTML = `<div class="explorer-wrap">
+        <div class="explorer-search-bar">
+            <div class="explorer-search-box">
+                <input type="text" class="explorer-filter" id="commFilter"
+                    placeholder="🔍 ${lang?'Search commodity…':'Rechercher une commodité…'}"
+                    oninput="filterCommList(this.value)" autocomplete="off">
+                <div id="commDropdown" class="explorer-dropdown"></div>
+            </div>
+        </div>
+        <div id="commContent"></div>
+    </div>`;
+
+    wrap._commList = commList;
+}
+
+function filterCommList(q){
+    const dd = document.getElementById('commDropdown');
+    if(!dd) return;
+    if(!q){ dd.classList.remove('open'); dd.innerHTML=''; return; }
+    const list = document.getElementById('tblWrap')._commList || [];
+    const lq = q.toLowerCase();
+    const filtered = list.filter(c=>c.name.toLowerCase().includes(lq)).slice(0,30);
+    if(!filtered.length){ dd.classList.remove('open'); dd.innerHTML=''; return; }
+    dd.innerHTML = filtered.map(c=>
+        `<div class="explorer-dd-item" onmousedown="selectComm(${c.id},'${c.name.replace(/'/g,"\\'")}')">${esc(c.name)}</div>`
+    ).join('');
+    dd.classList.add('open');
+}
+
+function selectComm(id, name){
+    const inp = document.getElementById('commFilter');
+    const dd  = document.getElementById('commDropdown');
+    if(inp) inp.value = name;
+    if(dd){ dd.classList.remove('open'); dd.innerHTML=''; }
+    onCommSelect(id);
+}
+
+function onCommSelect(id){
+    if(!id){ document.getElementById('commContent').innerHTML=''; return; }
+    const prices = S.prices || [];
+    const lang = _lang === 'en';
+
+    const buyLocs  = prices.filter(p=>p.id_commodity==id && p.price_buy>0)
+                           .sort((a,b)=>(b.scu_buy||0)-(a.scu_buy||0));
+    const sellLocs = prices.filter(p=>p.id_commodity==id && p.price_sell>0)
+                           .sort((a,b)=>b.price_sell-a.price_sell);
+
+    function card(p, type){
+        const isBuy = type==='buy';
+        const price    = isBuy ? p.price_buy       : p.price_sell;
+        const stock    = isBuy ? (p.scu_buy||0)    : (p.scu_sell_stock||0);
+        const maxStock = isBuy ? (p.scu_buy_max||0): (p.scu_sell_max||0);
+        const pct      = maxStock>0 ? Math.min(100,Math.round(stock/maxStock*100)) : 0;
+        const loc      = [p.space_station_name||p.outpost_name||p.city_name, p.planet_name, p.star_system_name].filter(Boolean).join(' · ');
+        return `<div class="explorer-card">
+            <div class="explorer-card-name">${esc(p.terminal_name||'?')}</div>
+            <div class="explorer-card-loc">${esc(loc)}</div>
+            <div class="explorer-card-price">${price.toLocaleString()} aUEC/SCU</div>
+            <div class="explorer-stock-bar-wrap"><div class="explorer-stock-bar" style="width:${pct}%"></div></div>
+            <div class="explorer-card-stock">${stock} / ${maxStock} SCU</div>
+        </div>`;
+    }
+
+    document.getElementById('commContent').innerHTML = `<div class="explorer-cols">
+        <div class="explorer-col">
+            <div class="explorer-col-title">🛒 ${lang?'Where to buy':'Où acheter'} <span class="explorer-count">${buyLocs.length}</span></div>
+            ${buyLocs.length ? buyLocs.map(p=>card(p,'buy')).join('') : `<div class="explorer-empty">${lang?'No terminal sells this commodity':'Aucun terminal ne vend cette commodité'}</div>`}
+        </div>
+        <div class="explorer-col">
+            <div class="explorer-col-title">💰 ${lang?'Where to sell':'Où vendre'} <span class="explorer-count">${sellLocs.length}</span></div>
+            ${sellLocs.length ? sellLocs.map(p=>card(p,'sell')).join('') : `<div class="explorer-empty">${lang?'No terminal buys this commodity':'Aucun terminal n\'achète cette commodité'}</div>`}
+        </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+//  EXPLORER STATIONS
+// ═══════════════════════════════════════════
+function renderStationExplorer(){
+    const wrap = document.getElementById('tblWrap');
+    const prices = S.prices || [];
+    const lang = _lang === 'en';
+
+    if(!prices.length){
+        wrap.innerHTML = `<div class="state-box">
+            <div class="state-title">🏪 ${lang?'Station Explorer':'Explorateur de stations'}</div>
+            <div class="state-sub">${lang?'Calculate routes first to load data.':'Lance d\'abord un calcul de routes pour charger les données.'}</div>
+        </div>`;
+        return;
+    }
+
+    const terms = {};
+    for(const p of prices){
+        if(p.terminal_name && !terms[p.id_terminal])
+            terms[p.id_terminal] = { id: p.id_terminal, name: p.terminal_name, system: p.star_system_name };
+    }
+    const termList = Object.values(terms).sort((a,b)=>a.name.localeCompare(b.name));
+
+    wrap.innerHTML = `<div class="explorer-wrap">
+        <div class="explorer-search-bar">
+            <div class="explorer-search-box">
+                <input type="text" class="explorer-filter" id="stationFilter"
+                    placeholder="🔍 ${lang?'Search station…':'Rechercher un terminal…'}"
+                    oninput="filterStationList(this.value)" autocomplete="off">
+                <div id="stationDropdown" class="explorer-dropdown"></div>
+            </div>
+        </div>
+        <div id="stationContent"></div>
+    </div>`;
+
+    wrap._termList = termList;
+}
+
+function filterStationList(q){
+    const dd = document.getElementById('stationDropdown');
+    if(!dd) return;
+    if(!q){ dd.classList.remove('open'); dd.innerHTML=''; return; }
+    const list = document.getElementById('tblWrap')._termList || [];
+    const lq = q.toLowerCase();
+    const filtered = list.filter(t=>t.name.toLowerCase().includes(lq)).slice(0,30);
+    if(!filtered.length){ dd.classList.remove('open'); dd.innerHTML=''; return; }
+    dd.innerHTML = filtered.map(t=>
+        `<div class="explorer-dd-item" onmousedown="selectStation(${t.id},'${t.name.replace(/'/g,"\\'")}')">${esc(t.name)} <span style="color:var(--text-3);font-size:10px">${esc(t.system||'')}</span></div>`
+    ).join('');
+    dd.classList.add('open');
+}
+
+function selectStation(id, name){
+    const inp = document.getElementById('stationFilter');
+    const dd  = document.getElementById('stationDropdown');
+    if(inp) inp.value = name;
+    if(dd){ dd.classList.remove('open'); dd.innerHTML=''; }
+    onStationSelect(id);
+}
+
+function onStationSelect(id){
+    if(!id){ document.getElementById('stationContent').innerHTML=''; return; }
+    const prices = S.prices || [];
+    const lang = _lang === 'en';
+
+    // Elle vend = tu peux acheter → price_buy > 0
+    const selling = prices.filter(p=>p.id_terminal==id && p.price_buy>0)
+                          .sort((a,b)=>b.price_buy-a.price_buy);
+    // Elle achète = tu peux vendre → price_sell > 0
+    const buying  = prices.filter(p=>p.id_terminal==id && p.price_sell>0)
+                          .sort((a,b)=>b.price_sell-a.price_sell);
+
+    function row(p, type){
+        const isVend = type==='sell'; // sell = station vend à toi
+        const price    = isVend ? p.price_buy        : p.price_sell;
+        const stock    = isVend ? (p.scu_buy||0)     : (p.scu_sell_stock||0);
+        const maxStock = isVend ? (p.scu_buy_max||0) : (p.scu_sell_max||0);
+        const pct      = maxStock>0 ? Math.min(100,Math.round(stock/maxStock*100)) : 0;
+        return `<div class="explorer-row">
+            <div class="explorer-row-name">${esc(p.commodity_name||'?')}</div>
+            <div class="explorer-row-price">${price.toLocaleString()} aUEC</div>
+            <div class="explorer-row-stock-wrap"><div class="explorer-row-stock-bar" style="width:${pct}%"></div></div>
+            <div class="explorer-row-stock">${stock}/${maxStock} SCU</div>
+        </div>`;
+    }
+
+    document.getElementById('stationContent').innerHTML = `<div class="explorer-cols">
+        <div class="explorer-col">
+            <div class="explorer-col-title">🛒 ${lang?'Sells to you':'Elle vend'} <span class="explorer-count">${selling.length}</span></div>
+            ${selling.length ? selling.map(p=>row(p,'sell')).join('') : `<div class="explorer-empty">${lang?'Nothing to buy here':'Ce terminal ne vend rien'}</div>`}
+        </div>
+        <div class="explorer-col">
+            <div class="explorer-col-title">💰 ${lang?'Buys from you':'Elle achète'} <span class="explorer-count">${buying.length}</span></div>
+            ${buying.length ? buying.map(p=>row(p,'buy')).join('') : `<div class="explorer-empty">${lang?'Nothing to sell here':'Ce terminal n\'achète rien'}</div>`}
+        </div>
+    </div>`;
 }
 
 // ═══════════════════════════════════════════
@@ -3429,8 +3697,8 @@ Ce guide te montre comment utiliser l'outil <strong>dans le bon ordre</strong> p
     title: 'Choisis ton thème',
     desc: `L'outil propose <strong>trois thèmes visuels</strong>, sélectionnables directement dans le header :<br><br>
 <strong>⚒️ SF</strong> — Le thème <span class="hl-cyan">Streamer Forge</span>. Ambiance sombre avec des accents orange, style industriel sci-fi. Thème par défaut.<br><br>
-<strong>🦅 BH</strong> — Le thème <span class="hl-cyan">Black Hawk</span>. Fond noir profond avec des accents dorés, style militaire élite.<br><br>
-<strong>🌌 Classic</strong> — Le thème <span class="hl-cyan">Classic</span>. Les couleurs d'origine : fond bleu nuit, accents cyan vif, ambiance Star Citizen pure.<br><br>
+<strong><img src="./logoBH.png" style="height:14px;vertical-align:middle;border-radius:2px"> BH</strong> — Le thème <span class="hl-cyan">Black Hawk</span>. Fond noir profond avec des accents dorés, style militaire élite.<br><br>
+<strong><img src="./logostartrad.png" style="height:14px;vertical-align:middle;border-radius:2px"> ST</strong> — Le thème <span class="hl-cyan">StarTrad</span>. Inspiré de l'app StarTrad FR : fond noir profond, accents teal vif, ambiance Star Citizen pure.<br><br>
 Le thème est <strong>sauvegardé automatiquement</strong> dans ton navigateur — il sera appliqué à chaque visite.`,
     tip: '💡 Ton thème préféré est mémorisé localement. Tu peux en changer à tout moment sans perdre tes réglages.'
   },
@@ -3449,9 +3717,11 @@ Le thème est <strong>sauvegardé automatiquement</strong> dans ton navigateur �
     label: 'Étape 4 sur 7',
     title: 'Calcule tes routes',
     desc: `Clique sur <span class="hl-cyan">⚡ Calculer les routes</span> pour lancer l'analyse.<br><br>
-Tu as deux modes de vue :<br><br>
+Tu as quatre modes de vue :<br><br>
 <strong>Trajets simples</strong> — Un aller direct : achète ici, vends là-bas. Idéal pour commencer ou tester une marchandise.<br><br>
-<strong>⟳ Circuits</strong> — Plusieurs étapes enchaînées pour maximiser le profit sur un seul plein de cargo. L'algo choisit les combinaisons qui remplissent au mieux ton vaisseau.<br><br>
+<strong>⟳ Circuits</strong> — Plusieurs étapes enchaînées pour maximiser le profit sur un seul plein de cargo.<br><br>
+<strong>📦 Marchandises</strong> — Recherche une marchandise et vois où l'acheter et où la revendre au meilleur prix.<br><br>
+<strong>🏪 Stations</strong> — Sélectionne un terminal et consulte tout ce qu'il vend et achète.<br><br>
 Deux modes de filtrage stock :<br><br>
 <strong>📈 Meilleur rendement</strong> — Affiche toutes les routes, même si le stock est vide.<br>
 <strong>📦 Stock dispo</strong> — N'affiche que les routes avec du stock disponible maintenant.<br><br>
@@ -3518,8 +3788,8 @@ This guide shows you how to use the tool <strong>in the right order</strong> to 
     title: 'Choose your theme',
     desc: `The tool offers <strong>three visual themes</strong>, selectable directly in the header:<br><br>
 <strong>⚒️ SF</strong> — The <span class="hl-cyan">Streamer Forge</span> theme. Dark background with orange accents, sci-fi industrial style. Default theme.<br><br>
-<strong>🦅 BH</strong> — The <span class="hl-cyan">Black Hawk</span> theme. Deep black background with golden accents, elite military style.<br><br>
-<strong>🌌 Classic</strong> — The <span class="hl-cyan">Classic</span> theme. The original colors: deep blue night background, bright cyan accents, pure Star Citizen vibes.<br><br>
+<strong><img src="./logoBH.png" style="height:14px;vertical-align:middle;border-radius:2px"> BH</strong> — The <span class="hl-cyan">Black Hawk</span> theme. Deep black background with golden accents, elite military style.<br><br>
+<strong><img src="./logostartrad.png" style="height:14px;vertical-align:middle;border-radius:2px"> ST</strong> — The <span class="hl-cyan">StarTrad</span> theme. Inspired by the StarTrad FR app: deep black background, bright teal accents, pure Star Citizen vibes.<br><br>
 Your theme is <strong>automatically saved</strong> in your browser — it will be applied on every visit.`,
     tip: '💡 Your preferred theme is stored locally. You can switch at any time without losing your settings.'
   },
@@ -3536,9 +3806,11 @@ Your theme is <strong>automatically saved</strong> in your browser — it will b
     icon: '🔍', label: 'Step 4 of 7',
     title: 'Calculate your routes',
     desc: `Click <span class="hl-cyan">⚡ Calculate routes</span> to start the analysis.<br><br>
-You have two view modes:<br><br>
+You have four view modes:<br><br>
 <strong>Simple routes</strong> — A direct trip: buy here, sell there. Ideal to start or test a commodity.<br><br>
-<strong>⟳ Circuits</strong> — Multiple chained steps to maximize profit on a single cargo run. The algorithm picks the best combinations to fill your ship.<br><br>
+<strong>⟳ Circuits</strong> — Multiple chained steps to maximize profit on a single cargo run.<br><br>
+<strong>📦 Commodities</strong> — Search for a commodity and see where to buy and sell it at the best price.<br><br>
+<strong>🏪 Stations</strong> — Select a terminal and browse everything it sells and buys.<br><br>
 Two stock filter modes:<br><br>
 <strong>📈 Best yield</strong> — Shows all routes, even if stock is empty.<br>
 <strong>📦 Stock available</strong> — Only shows routes where stock is available right now.<br><br>
