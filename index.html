@@ -321,7 +321,9 @@
             border-bottom: 1px solid var(--border);
             padding: 8px 16px;
             display: flex; align-items: center; gap: 20px;
+            overflow-x: auto; flex-wrap: nowrap;
         }
+        .stats-bar > * { flex-shrink: 0; }
         .stat { display: flex; flex-direction: column; gap: 1px; }
         .stat-v { font-size: 17px; font-weight: 800; color: var(--cyan); font-variant-numeric: tabular-nums; }
         .stat-l { font-size: 9px; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; }
@@ -1183,7 +1185,7 @@
             <div class="stat"><span class="stat-v" id="sTerms">—</span><span class="stat-l" data-i18n="stat.terminals">Terminaux</span></div>
             <div class="vsep"></div>
             <div class="stat"><span class="stat-v" id="sTime">—</span><span class="stat-l" data-i18n="stat.updated">Mis à jour</span></div>
-            <div style="margin-left:auto; display:flex; align-items:center; gap:12px;">
+            <div style="margin-left:auto; display:flex; align-items:center; gap:12px; flex-shrink:0; min-width:max-content;">
                 <input type="text" id="search" placeholder="🔍  Filtrer commodité / terminal…"
                        data-i18n-placeholder="results.search" style="width:220px;" oninput="doFilter()">
                 <div class="fresh-wrap">
@@ -2741,11 +2743,23 @@ function onStationSelect(id){
     const prices = S.prices || [];
     const lang = _lang === 'en';
 
+    // Trouve le nom du terminal sélectionné
+    const termInfo = (document.getElementById('tblWrap')._termList || []).find(t=>t.id==id);
+    const termName = termInfo?.name || '';
+
+    // Filtre par id_terminal OU par terminal_name (pour les données SF auto-collectées id=0)
+    const matches = p =>
+        p.id_terminal == id ||
+        (p.id_terminal == 0 && termName && p.terminal_name &&
+         p.terminal_name.toLowerCase().replace(/[\s\-]/g,'').includes(
+             termName.toLowerCase().replace(/[\s\-]/g,'').substring(0,8)
+         ));
+
     // Elle vend = tu peux acheter → price_buy > 0
-    const selling = prices.filter(p=>p.id_terminal==id && p.price_buy>0)
+    const selling = prices.filter(p=>matches(p) && p.price_buy>0)
                           .sort((a,b)=>b.price_buy-a.price_buy);
     // Elle achète = tu peux vendre → price_sell > 0
-    const buying  = prices.filter(p=>p.id_terminal==id && p.price_sell>0)
+    const buying  = prices.filter(p=>matches(p) && p.price_sell>0)
                           .sort((a,b)=>b.price_sell-a.price_sell);
 
     function row(p, type){
