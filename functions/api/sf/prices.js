@@ -23,7 +23,7 @@ export async function onRequest(context) {
   }
 
   // On prend le report le plus récent par paire (terminal + commodité)
-  // avec au moins 1 confirmation OU soumis il y a moins de 24h
+  // Gère les deux cas : données manuelles (id > 0) et auto-collectées (id = 0)
   const { results } = await env.SF_DB.prepare(`
     SELECT
       r.id_terminal,
@@ -36,15 +36,26 @@ export async function onRequest(context) {
       r.scu_buy,
       r.rsi_handle,
       r.submitted_at,
-      r.confirmed_count
+      r.confirmed_count,
+      r.auto_collected,
+      r.source
     FROM price_reports r
     INNER JOIN (
-      SELECT id_terminal, id_commodity, MAX(submitted_at) AS latest
+      SELECT
+        CASE WHEN id_terminal > 0 THEN CAST(id_terminal AS TEXT) ELSE terminal_name END AS grp_term,
+        CASE WHEN id_commodity > 0 THEN CAST(id_commodity AS TEXT) ELSE commodity_name END AS grp_comm,
+        MAX(submitted_at) AS latest
       FROM price_reports
-      GROUP BY id_terminal, id_commodity
-    ) latest ON r.id_terminal = latest.id_terminal
-             AND r.id_commodity = latest.id_commodity
-             AND r.submitted_at = latest.latest
+      WHERE commodity_name IS NOT NULL
+        AND commodity_name != ''
+        AND commodity_name != 'Commodity inconnue'
+      GROUP BY grp_term, grp_comm
+    ) latest
+      ON (
+        CASE WHEN r.id_terminal > 0 THEN CAST(r.id_terminal AS TEXT) ELSE r.terminal_name END = latest.grp_term
+        AND CASE WHEN r.id_commodity > 0 THEN CAST(r.id_commodity AS TEXT) ELSE r.commodity_name END = latest.grp_comm
+        AND r.submitted_at = latest.latest
+      )
     ORDER BY r.submitted_at DESC
     LIMIT 5000
   `).all();
