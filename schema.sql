@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS price_reports (
     scu_buy         INTEGER DEFAULT 0,
     rsi_handle      TEXT,
     submitted_at    INTEGER NOT NULL,
-    confirmed_count INTEGER DEFAULT 0
+    confirmed_count INTEGER DEFAULT 0,
+    auto_collected  INTEGER DEFAULT 0,  -- 1 = SC Trade Tracker, 0 = formulaire manuel
+    source          TEXT    DEFAULT 'manual' -- 'manual' | 'sc_trade_tracker'
 );
 
 CREATE TABLE IF NOT EXISTS price_confirmations (

@@ -33,10 +33,25 @@ export async function onRequest(context) {
   }
 
   const { id_terminal, id_commodity, terminal_name, commodity_name, commodity_code,
-          price_buy, price_sell, scu_buy, rsi_handle } = body;
+          price_buy, price_sell, scu_buy, rsi_handle,
+          auto_collected, source } = body;
 
-  if (!id_terminal || !id_commodity || !rsi_handle) {
+  // auto_collected = true  → vient du SC Trade Tracker (id_commodity peut être 0)
+  // auto_collected = false → vient du formulaire manuel (id_commodity requis)
+  const isAuto = auto_collected === true;
+
+  if (!id_terminal || (!id_commodity && !isAuto)) {
     return new Response(JSON.stringify({ status: 'error', message: 'Missing required fields' }), { status: 400, headers: CORS });
+  }
+
+  // Pour les reports manuels, le handle est obligatoire
+  if (!isAuto && !rsi_handle) {
+    return new Response(JSON.stringify({ status: 'error', message: 'rsi_handle required for manual reports' }), { status: 400, headers: CORS });
+  }
+
+  // Rejeter les reports sans commodité identifiée
+  if (!commodity_name || commodity_name === 'Commodity inconnue') {
+    return new Response(JSON.stringify({ status: 'skip', message: 'Commodity not identified' }), { status: 200, headers: CORS });
   }
 
   const now = Math.floor(Date.now() / 1000);
@@ -44,12 +59,14 @@ export async function onRequest(context) {
   await env.SF_DB.prepare(`
     INSERT INTO price_reports
       (id_terminal, id_commodity, terminal_name, commodity_name, commodity_code,
-       price_buy, price_sell, scu_buy, rsi_handle, submitted_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       price_buy, price_sell, scu_buy, rsi_handle, submitted_at, auto_collected, source)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
-    id_terminal, id_commodity, terminal_name || '', commodity_name || '',
+    id_terminal || 0, id_commodity || 0,
+    terminal_name || '', commodity_name || '',
     commodity_code || '', price_buy || 0, price_sell || 0, scu_buy || 0,
-    rsi_handle, now
+    rsi_handle || 'auto', now,
+    isAuto ? 1 : 0, source || 'manual'
   ).run();
 
   return new Response(JSON.stringify({ status: 'ok' }), {
