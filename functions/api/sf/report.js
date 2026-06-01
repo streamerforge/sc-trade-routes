@@ -45,13 +45,8 @@ export async function onRequest(context) {
     return new Response(JSON.stringify({ status: 'error', message: 'Missing required fields' }), { status: 400, headers: CORS });
   }
 
-  // Pour les reports auto : au moins commodity_name obligatoire
-  if (isAuto && (!commodity_name || commodity_name === 'Commodity inconnue')) {
-    return new Response(JSON.stringify({ status: 'skip', message: 'Commodity not identified' }), { status: 200, headers: CORS });
-  }
-
-  // Rejeter les reports sans commodité identifiée
-  if (!commodity_name || commodity_name === 'Commodity inconnue') {
+  // Pour les reports manuels seulement : rejeter si commodité inconnue
+  if (!isAuto && (!commodity_name || commodity_name === 'Commodity inconnue')) {
     return new Response(JSON.stringify({ status: 'skip', message: 'Commodity not identified' }), { status: 200, headers: CORS });
   }
 
