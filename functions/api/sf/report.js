@@ -40,13 +40,14 @@ export async function onRequest(context) {
   // auto_collected = false → vient du formulaire manuel (id_commodity requis)
   const isAuto = auto_collected === true;
 
-  if (!id_terminal || (!id_commodity && !isAuto)) {
+  // Pour les reports manuels : id_terminal et rsi_handle obligatoires
+  if (!isAuto && (!id_terminal || !rsi_handle)) {
     return new Response(JSON.stringify({ status: 'error', message: 'Missing required fields' }), { status: 400, headers: CORS });
   }
 
-  // Pour les reports manuels, le handle est obligatoire
-  if (!isAuto && !rsi_handle) {
-    return new Response(JSON.stringify({ status: 'error', message: 'rsi_handle required for manual reports' }), { status: 400, headers: CORS });
+  // Pour les reports auto : au moins commodity_name obligatoire
+  if (isAuto && (!commodity_name || commodity_name === 'Commodity inconnue')) {
+    return new Response(JSON.stringify({ status: 'skip', message: 'Commodity not identified' }), { status: 200, headers: CORS });
   }
 
   // Rejeter les reports sans commodité identifiée
