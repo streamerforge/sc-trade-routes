@@ -24,10 +24,10 @@ const CORS = {
 };
 
 const UEX_BASE    = 'https://api.uexcorp.uk/2.0';
-const TTL_STANTON = 5 * 60;    // 5 min
-const TTL_PYRO    = 5 * 60;    // 5 min
-const TTL_NYX     = 5 * 60;    // 5 min
-const BATCH       = 10;        // requêtes en parallèle (server-side, pas de CORS)
+const TTL_STANTON = 30 * 60;   // 30 min
+const TTL_PYRO    = 30 * 60;   // 30 min
+const TTL_NYX     = 30 * 60;   // 30 min
+const BATCH       = 15;        // requêtes en parallèle (augmenté pour accélérer le refetch)
 
 export async function onRequest(context) {
   const { request, env } = context;
