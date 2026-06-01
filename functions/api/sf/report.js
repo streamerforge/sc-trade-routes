@@ -34,7 +34,7 @@ export async function onRequest(context) {
 
   const { id_terminal, id_commodity, terminal_name, commodity_name, commodity_code,
           price_buy, price_sell, scu_buy, rsi_handle,
-          auto_collected, source } = body;
+          auto_collected, source, type } = body;
 
   // auto_collected = true  → vient du SC Trade Tracker (id_commodity peut être 0)
   // auto_collected = false → vient du formulaire manuel (id_commodity requis)
@@ -56,6 +56,8 @@ export async function onRequest(context) {
   }
 
   const now = Math.floor(Date.now() / 1000);
+  // SCAN = juste disponibilité stock, price_buy/sell = 0
+  const isScan = type === 'SCAN';
 
   await env.SF_DB.prepare(`
     INSERT INTO price_reports
@@ -65,9 +67,10 @@ export async function onRequest(context) {
   `).bind(
     id_terminal || 0, id_commodity || 0,
     terminal_name || '', commodity_name || '',
-    commodity_code || '', price_buy || 0, price_sell || 0, scu_buy || 0,
+    commodity_code || '', isScan ? 0 : (price_buy || 0),
+    isScan ? 0 : (price_sell || 0), scu_buy || 0,
     rsi_handle || 'auto', now,
-    isAuto ? 1 : 0, source || 'manual'
+    isAuto ? 1 : 0, isScan ? 'scan' : (source || 'manual')
   ).run();
 
   return new Response(JSON.stringify({ status: 'ok' }), {
