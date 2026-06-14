@@ -1334,7 +1334,7 @@ const TRANSLATIONS = {
     'refresh.ok':'✅ Stock OK — {stock} SCU dispo',
     'refresh.priceChanged':' &nbsp;·&nbsp; Prix actuel : <span style="color:var(--amber)">{price} aUEC/SCU</span> <span style="color:var(--text-3)">(calculé : {old})</span>',
     'refresh.networkError':'⚠️ Erreur réseau : {msg}',
-    'modal.title':'✅ Valider ce trade','modal.handlePlaceholder':'Ton handle RSI (ex: Vinyle)',
+    'modal.title':'✅ Valider ce trade','modal.handlePlaceholder':'Ton handle RSI (ex: TonPseudo)',
     'modal.handleHint':'Sauvegardé localement — utilisé pour la traçabilité des rapports.',
     'modal.drToggle':'⚡ DataRunner — utilise ta propre clé UEX',
     'modal.drKeyPlaceholder':'Clé secrète UEX (secret-key)',
@@ -1441,7 +1441,7 @@ const TRANSLATIONS = {
     'refresh.ok':'✅ Stock OK — {stock} SCU available',
     'refresh.priceChanged':' &nbsp;·&nbsp; Current price: <span style="color:var(--amber)">{price} aUEC/SCU</span> <span style="color:var(--text-3)">(calculated: {old})</span>',
     'refresh.networkError':'⚠️ Network error: {msg}',
-    'modal.title':'✅ Validate trade','modal.handlePlaceholder':'Your RSI handle (e.g. Vinyle)',
+    'modal.title':'✅ Validate trade','modal.handlePlaceholder':'Your RSI handle (e.g. YourHandle)',
     'modal.handleHint':'Saved locally — used for report traceability.',
     'modal.drToggle':'⚡ DataRunner — use your own UEX key',
     'modal.drKeyPlaceholder':'UEX secret key (secret-key)',
@@ -3337,7 +3337,7 @@ function saveBuyData(){
                 saved_at: Math.floor(Date.now()/1000),
             };
             localStorage.setItem('sf_pending_buy', JSON.stringify(pending2));
-            localStorage.setItem('sf_rsi_handle', handle);
+            localStorage.setItem('sf_rsi_handle_v2', handle);
             msg.style.color = 'var(--green)';
             msg.textContent = T('modal.buySaved');
             setTimeout(closeValidate, 1800);
@@ -3359,7 +3359,7 @@ function saveBuyData(){
         saved_at:          Math.floor(Date.now()/1000),
     };
     localStorage.setItem('sf_pending_buy', JSON.stringify(pending));
-    localStorage.setItem('sf_rsi_handle', handle);
+    localStorage.setItem('sf_rsi_handle_v2', handle);
     msg.style.color  = 'var(--green)';
     msg.textContent  = T('modal.buySaved');
     setTimeout(closeValidate, 1800);
@@ -3402,7 +3402,7 @@ function _openModal(){
     msgEl.textContent = ''; msgEl.style.color = ''; msgEl.style.display = '';
     document.getElementById('vmSuccess').style.display = 'none';
 
-    document.getElementById('vmHandle').value = localStorage.getItem('sf_rsi_handle') || '';
+    document.getElementById('vmHandle').value = localStorage.getItem('sf_rsi_handle_v2') || '';
     // Réactiver les boutons d'envoi (peuvent être désactivés après une soumission précédente)
     const _sb2 = document.getElementById('vmSubmitBoth'); if(_sb2) _sb2.disabled = false;
     document.getElementById('validateModal').style.display = 'flex';
@@ -3613,7 +3613,7 @@ async function submitValidate(target = 'both', forceSubmit = false){
     if(submitBtn) submitBtn.disabled = true;
 
     // Sauvegarder handle et clé UEX
-    localStorage.setItem('sf_rsi_handle', handle);
+    localStorage.setItem('sf_rsi_handle_v2', handle);
     if(uexKey) localStorage.setItem('sf_uex_key', uexKey);
 
     msg.style.color = 'var(--text-2)';
@@ -3960,7 +3960,7 @@ if(!localStorage.getItem('sf_tuto_done')){
         <div class="modal-route" id="vmRoute"></div>
         <div class="modal-handle">
             <label class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.8px">Handle RSI <span style="color:var(--red)">*</span></label>
-            <input type="text" id="vmHandle" data-i18n-placeholder="modal.handlePlaceholder" placeholder="Ton handle RSI (ex: Vinyle)" style="font-size:12px">
+            <input type="text" id="vmHandle" data-i18n-placeholder="modal.handlePlaceholder" placeholder="Ton handle RSI (ex: TonPseudo)" style="font-size:12px">
             <div style="font-size:10px;color:var(--text-3);margin-top:3px" data-i18n="modal.handleHint">Sauvegardé localement — utilisé pour la traçabilité des rapports.</div>
         </div>
         <!-- DataRunner -->
