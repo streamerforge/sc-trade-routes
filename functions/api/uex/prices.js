@@ -88,8 +88,21 @@ export async function onRequest(context) {
     return collected;
   }
 
+  // ── 0. Debug terminal individuel ────────────────────────────────────
+  const url0 = new URL(request.url);
+  const debugTerm = url0.searchParams.get('debug_term');
+  if (debugTerm) {
+    const withKey    = await uexGet(`commodities_prices/id_terminal/${debugTerm}`);
+    const withoutKey = await uexGet(`commodities_prices/id_terminal/${debugTerm}`, { noKey: true });
+    return new Response(JSON.stringify({
+      terminal: debugTerm,
+      with_key: { count: withKey.length, sample: withKey.slice(0,2) },
+      without_key: { count: withoutKey.length, sample: withoutKey.slice(0,2) },
+    }), { status: 200, headers: { 'Content-Type': 'application/json', ...CORS } });
+  }
+
   // ── 1. Vérifier les 3 caches ────────────────────────────────────────
-  const forceRefresh = new URL(request.url).searchParams.has('force');
+  const forceRefresh = url0.searchParams.has('force');
   let stanton = forceRefresh ? null : await kvGet('prices_stanton', TTL_STANTON);
   let pyro    = forceRefresh ? null : await kvGet('prices_pyro',    TTL_PYRO);
   let nyx     = forceRefresh ? null : await kvGet('prices_nyx',     TTL_NYX);
