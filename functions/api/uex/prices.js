@@ -101,7 +101,7 @@ export async function onRequest(context) {
   // ── 3. Stanton ──────────────────────────────────────────────────────
   if (!stanton) {
     const terms = allTerminals.filter(t =>
-      t.star_system_name === 'Stanton' && t.is_available === 1
+      t.star_system_name === 'Stanton' && t.is_available === 1 && t.type === 'commodity'
     );
     stanton = await fetchByTerminals(terms);
     await kvSet('prices_stanton', stanton, TTL_STANTON);
@@ -110,7 +110,7 @@ export async function onRequest(context) {
   // ── 4. Pyro ─────────────────────────────────────────────────────────
   if (!pyro) {
     const terms = allTerminals.filter(t =>
-      t.star_system_name === 'Pyro' && t.is_available === 1
+      t.star_system_name === 'Pyro' && t.is_available === 1 && t.type === 'commodity'
     );
     pyro = await fetchByTerminals(terms);
     await kvSet('prices_pyro', pyro, TTL_PYRO);
@@ -119,7 +119,7 @@ export async function onRequest(context) {
   // ── 5. Nyx ──────────────────────────────────────────────────────────
   if (!nyx) {
     const terms = allTerminals.filter(t =>
-      t.star_system_name === 'Nyx' && t.is_available === 1
+      t.star_system_name === 'Nyx' && t.is_available === 1 && t.type === 'commodity'
     );
     nyx = await fetchByTerminals(terms);
     await kvSet('prices_nyx', nyx, TTL_NYX);
