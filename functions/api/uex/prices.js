@@ -81,7 +81,7 @@ export async function onRequest(context) {
     for (let i = 0; i < terms.length; i += BATCH) {
       const batch = terms.slice(i, i + BATCH);
       const results = await Promise.all(
-        batch.map(t => uexGet(`commodities_prices/id_terminal/${t.id}`))
+        batch.map(t => uexGet(`commodities_prices/id_terminal/${t.id}`, { noKey: true }))
       );
       results.forEach(r => { if (Array.isArray(r)) collected.push(...r); });
     }
