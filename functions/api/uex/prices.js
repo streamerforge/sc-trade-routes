@@ -89,9 +89,10 @@ export async function onRequest(context) {
   }
 
   // ── 1. Vérifier les 3 caches ────────────────────────────────────────
-  let stanton = await kvGet('prices_stanton', TTL_STANTON);
-  let pyro    = await kvGet('prices_pyro',    TTL_PYRO);
-  let nyx     = await kvGet('prices_nyx',     TTL_NYX);
+  const forceRefresh = new URL(request.url).searchParams.has('force');
+  let stanton = forceRefresh ? null : await kvGet('prices_stanton', TTL_STANTON);
+  let pyro    = forceRefresh ? null : await kvGet('prices_pyro',    TTL_PYRO);
+  let nyx     = forceRefresh ? null : await kvGet('prices_nyx',     TTL_NYX);
 
   // ── 2. Fetch terminaux si au moins 1 système périmé ─────────────────
   let allTerminals = null;
@@ -134,9 +135,10 @@ export async function onRequest(context) {
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store',
-      'X-Cache-Stanton': stanton?.length ?? 0,
-      'X-Cache-Pyro':    pyro?.length    ?? 0,
-      'X-Cache-Nyx':     nyx?.length     ?? 0,
+      'X-Cache-Stanton':    stanton?.length ?? 0,
+      'X-Cache-Pyro':       pyro?.length    ?? 0,
+      'X-Cache-Nyx':        nyx?.length     ?? 0,
+      'X-Debug-Terminals':  allTerminals ? `${allTerminals.length}` : 'cached',
       ...CORS,
     },
   });
