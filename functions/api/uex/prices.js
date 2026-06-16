@@ -47,9 +47,10 @@ export async function onRequest(context) {
   if (env.UEX_API_KEY) uexHeaders['secret-key'] = env.UEX_API_KEY;
 
   // ── Helper fetch UEX ────────────────────────────────────────────────
-  async function uexGet(path) {
+  async function uexGet(path, { noKey = false } = {}) {
     try {
-      const r = await fetch(`${UEX_BASE}/${path}`, { headers: uexHeaders });
+      const h = noKey ? { 'Content-Type': 'application/json' } : uexHeaders;
+      const r = await fetch(`${UEX_BASE}/${path}`, { headers: h });
       if (!r.ok) return [];
       const j = await r.json();
       return (j.status === 'ok' && Array.isArray(j.data)) ? j.data : [];
@@ -95,7 +96,7 @@ export async function onRequest(context) {
   // ── 2. Fetch terminaux si au moins 1 système périmé ─────────────────
   let allTerminals = null;
   if (!stanton || !pyro || !nyx) {
-    allTerminals = await uexGet('terminals');
+    allTerminals = await uexGet('terminals', { noKey: true });
   }
 
   // ── 3. Stanton ──────────────────────────────────────────────────────
